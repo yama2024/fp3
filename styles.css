@@ -255,6 +255,17 @@ h3 {
     }
 }
 
+/* お気に入りカウンターのホバー効果 */
+#favorite-counter:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.7);
+    background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+}
+
+#favorite-counter:active {
+    transform: scale(1.05);
+}
+
 .options {
     list-style: none;
 }

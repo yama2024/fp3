@@ -28,6 +28,12 @@ class QuizApp {
         document.getElementById('next-btn').addEventListener('click', () => this.nextQuestion());
         document.getElementById('reset-btn').addEventListener('click', () => this.resetQuiz());
 
+        // お気に入りカウンターのクリックイベント
+        const favoriteCounter = document.getElementById('favorite-counter');
+        if (favoriteCounter) {
+            favoriteCounter.addEventListener('click', () => this.loadFavoritesOnly());
+        }
+
         // お気に入り数を表示
         this.updateFavoriteCount();
     }
@@ -57,6 +63,62 @@ class QuizApp {
 
         // カテゴリータイトルを更新
         document.getElementById('current-category').textContent = questionsData[category].title + '（ランダム出題）';
+
+        // 統計情報を更新
+        document.getElementById('total-questions').textContent = this.currentQuestions.length;
+        document.getElementById('correct-count').textContent = '0';
+
+        // コントロールボタンを表示
+        document.getElementById('quiz-controls').style.display = 'flex';
+
+        // 最初の問題を表示
+        this.displayQuestion();
+    }
+
+    loadFavoritesOnly() {
+        // お気に入りが0件の場合
+        if (this.favorites.length === 0) {
+            alert('お気に入りに登録された問題がありません。\n問題を解いて、★ボタンをクリックしてお気に入りに追加してください。');
+            return;
+        }
+
+        // 全カテゴリーからお気に入りの問題を抽出
+        const favoriteQuestions = [];
+
+        // お気に入りIDをパース（例: "life-planning-1" -> {category: "life-planning", id: 1}）
+        this.favorites.forEach(favId => {
+            const parts = favId.split('-');
+            // 最後の部分がquestionId、それ以外がcategory
+            const questionId = parseInt(parts[parts.length - 1]);
+            const category = parts.slice(0, -1).join('-');
+
+            if (questionsData[category]) {
+                const question = questionsData[category].questions.find(q => q.id === questionId);
+                if (question) {
+                    // カテゴリー情報を問題オブジェクトに追加
+                    favoriteQuestions.push({
+                        ...question,
+                        originalCategory: category
+                    });
+                }
+            }
+        });
+
+        // お気に入りの問題が見つからない場合
+        if (favoriteQuestions.length === 0) {
+            alert('お気に入りの問題が見つかりませんでした。');
+            return;
+        }
+
+        // お気に入りをランダムにシャッフル
+        this.currentQuestions = this.shuffleArray(favoriteQuestions);
+        this.currentCategory = 'favorites'; // 特別なカテゴリー
+        this.currentQuestionIndex = 0;
+        this.correctCount = 0;
+        this.userAnswers = new Array(this.currentQuestions.length).fill(null);
+
+        // カテゴリータイトルを更新
+        document.getElementById('current-category').textContent = '★ お気に入り問題（ランダム出題）';
 
         // 統計情報を更新
         document.getElementById('total-questions').textContent = this.currentQuestions.length;
@@ -114,7 +176,9 @@ class QuizApp {
         }
 
         // お気に入りボタン
-        const isFav = this.isFavorite(this.currentCategory, question.id);
+        // お気に入りカテゴリーの場合はoriginalCategoryを使用
+        const categoryForFavorite = question.originalCategory || this.currentCategory;
+        const isFav = this.isFavorite(categoryForFavorite, question.id);
         const favoriteIcon = isFav ? '★' : '☆';
         const favoriteClass = isFav ? 'favorite-active' : '';
 
@@ -129,7 +193,7 @@ class QuizApp {
                     </p>
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 0.3rem;">
                         <button class="favorite-btn ${favoriteClass}"
-                                data-category="${this.currentCategory}"
+                                data-category="${categoryForFavorite}"
                                 data-question-id="${question.id}"
                                 title="${isFav ? 'お気に入りから削除' : 'お気に入りに追加'}">
                             ${favoriteIcon}
