@@ -173,17 +173,8 @@ class QuizApp {
         // 問題を再表示（解説とフィードバックを表示）
         this.displayQuestion();
 
-        // 自動的に次の問題へ進む（最後の問題以外）
-        if (this.currentQuestionIndex < this.currentQuestions.length - 1) {
-            setTimeout(() => {
-                this.nextQuestion();
-            }, 3000); // 3秒後に次の問題へ
-        } else {
-            // 最後の問題の場合、結果を表示
-            setTimeout(() => {
-                this.showResults();
-            }, 3000); // 3秒後に結果を表示
-        }
+        // 自動遷移は無効化（ユーザーが手動で次へボタンを押す）
+        // 解説をじっくり読んでから次に進めるようにする
     }
 
     prevQuestion() {
@@ -197,6 +188,9 @@ class QuizApp {
         if (this.currentQuestionIndex < this.currentQuestions.length - 1) {
             this.currentQuestionIndex++;
             this.displayQuestion();
+        } else {
+            // 最後の問題の場合は結果を表示
+            this.showResults();
         }
     }
 
@@ -215,7 +209,21 @@ class QuizApp {
         const nextBtn = document.getElementById('next-btn');
 
         prevBtn.disabled = this.currentQuestionIndex === 0;
-        nextBtn.disabled = this.currentQuestionIndex === this.currentQuestions.length - 1;
+
+        // 最後の問題の場合
+        if (this.currentQuestionIndex === this.currentQuestions.length - 1) {
+            // 回答済みなら「結果を見る」ボタンとして有効化
+            if (this.userAnswers[this.currentQuestionIndex] !== null) {
+                nextBtn.disabled = false;
+                nextBtn.textContent = '結果を見る';
+            } else {
+                nextBtn.disabled = true;
+                nextBtn.textContent = '次の問題';
+            }
+        } else {
+            nextBtn.disabled = false;
+            nextBtn.textContent = '次の問題';
+        }
     }
 
     showResults() {
