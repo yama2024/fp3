@@ -194,11 +194,14 @@ h3 {
     cursor: pointer;
     transition: all 0.3s ease;
     border: 2px solid #e0e0e0;
+    position: relative;
+    font-size: 1.05rem;
 }
 
-.option:hover {
+.option:hover:not(.disabled) {
     border-color: #667eea;
     transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
 .option.selected {
@@ -208,20 +211,52 @@ h3 {
 }
 
 .option.correct {
-    background: #28a745;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
     border-color: #28a745;
+    font-weight: 600;
+    animation: correctPulse 0.6s ease;
+}
+
+.option.correct::before {
+    content: "✓ ";
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-right: 0.5rem;
 }
 
 .option.incorrect {
-    background: #dc3545;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     color: white;
     border-color: #dc3545;
+    font-weight: 600;
+    animation: incorrectShake 0.6s ease;
+}
+
+.option.incorrect::before {
+    content: "✗ ";
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.option.neutral-correct {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    color: #1b5e20;
+    border: 3px solid #28a745;
+    font-weight: 600;
+}
+
+.option.neutral-correct::before {
+    content: "✓ 正解: ";
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-right: 0.5rem;
+    color: #28a745;
 }
 
 .option.disabled {
     cursor: not-allowed;
-    opacity: 0.7;
 }
 
 .explanation {
@@ -360,6 +395,53 @@ footer {
     }
 }
 
+@keyframes correctPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.03);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes incorrectShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    75% {
+        transform: translateX(10px);
+    }
+}
+
 .question {
     animation: fadeIn 0.5s ease;
+}
+
+/* 回答フィードバックバナー */
+.feedback-banner {
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.feedback-banner.correct {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    border: 2px solid #28a745;
+}
+
+.feedback-banner.incorrect {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    border: 2px solid #dc3545;
 }
