@@ -454,6 +454,194 @@ footer {
     .categories {
         grid-template-columns: 1fr;
     }
+
+    /* お気に入りカウンターをモバイルで調整 */
+    #favorite-counter {
+        padding: 0.8rem 1.5rem !important;
+        font-size: 1rem !important;
+    }
+
+    #favorite-count {
+        font-size: 1.3rem !important;
+    }
+
+    /* お気に入りボタンをモバイルで調整 */
+    .favorite-btn {
+        font-size: 2rem;
+        padding: 0.6rem 1rem;
+        min-width: 3.5rem;
+    }
+
+    /* 問題文のフォントサイズを調整 */
+    .question-text {
+        font-size: 1.1rem;
+    }
+
+    /* 選択肢のフォントサイズとパディングを調整 */
+    .option {
+        font-size: 1rem;
+        padding: 1rem;
+    }
+
+    /* フィードバックバナーを小さく */
+    .feedback-banner {
+        font-size: 1rem;
+        padding: 1rem;
+    }
+
+    /* ヘルプメッセージを調整 */
+    .explanation {
+        padding: 1rem;
+        font-size: 0.95rem;
+    }
+
+    /* ボタンを大きく（タッチしやすく） */
+    .btn {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        min-height: 48px; /* タッチターゲットの最小サイズ */
+    }
+
+    .category-btn {
+        padding: 1.2rem 1.5rem;
+        font-size: 1.1rem;
+        min-height: 56px;
+    }
+}
+
+/* 小さいスマートフォン向け（480px以下） */
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+    }
+
+    main {
+        padding: 0.5rem;
+    }
+
+    .quiz-container {
+        padding: 1rem;
+    }
+
+    /* お気に入りカウンターをさらに小さく */
+    #favorite-counter {
+        padding: 0.6rem 1rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    #favorite-count {
+        font-size: 1.1rem !important;
+    }
+
+    /* お気に入りボタンをさらに調整 */
+    .favorite-btn {
+        font-size: 1.8rem;
+        padding: 0.5rem 0.8rem;
+        min-width: 3rem;
+    }
+
+    /* 問題番号の下のテキストを小さく */
+    .favorite-btn + span {
+        font-size: 0.65rem !important;
+    }
+
+    /* 問題文を小さく */
+    .question-text {
+        font-size: 1rem;
+    }
+
+    /* 選択肢を調整 */
+    .option {
+        font-size: 0.95rem;
+        padding: 0.9rem 1rem;
+        margin: 0.6rem 0;
+    }
+
+    /* フィードバックバナーをさらに小さく */
+    .feedback-banner {
+        font-size: 0.95rem;
+        padding: 0.8rem;
+        margin: 1rem 0;
+    }
+
+    /* ヘルプメッセージを調整 */
+    .explanation {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .explanation h4 {
+        font-size: 1rem;
+    }
+
+    /* ボタンのサイズを調整 */
+    .btn {
+        padding: 0.9rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .category-btn {
+        padding: 1rem 1.2rem;
+        font-size: 1rem;
+    }
+
+    /* 統計情報のフォントサイズを調整 */
+    .quiz-stats {
+        font-size: 1rem;
+    }
+
+    /* 情報カードのグリッドを1列に */
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* 学習のポイントのグリッドを1列に */
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* タッチデバイス向けの最適化 */
+@media (hover: none) and (pointer: coarse) {
+    /* タッチデバイスではホバーアニメーションを無効化 */
+    .option:hover:not(.disabled) {
+        transform: none;
+    }
+
+    .category-btn:hover {
+        transform: none;
+    }
+
+    .btn-primary:hover {
+        transform: none;
+    }
+
+    /* お気に入りボタンのホバーエフェクトを調整 */
+    .favorite-btn:hover {
+        transform: scale(1.1);
+    }
+
+    /* タップ時のフィードバックを強化 */
+    .option:active:not(.disabled) {
+        transform: scale(0.98);
+        background-color: #f0f0f0;
+    }
+
+    .btn:active {
+        transform: scale(0.97);
+    }
+
+    .category-btn:active {
+        transform: scale(0.97);
+    }
+
+    .favorite-btn:active {
+        transform: scale(1.2);
+    }
 }
 
 /* アニメーション */
