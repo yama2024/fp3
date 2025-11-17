@@ -18,7 +18,7 @@ fp3/
 ├── index.html          # メインHTML（構造定義）
 ├── styles.css          # スタイルシート（デザイン・アニメーション）
 ├── script.js           # アプリケーションロジック（QuizAppクラス）
-├── questions.js        # 問題データベース（72問）
+├── questions.js        # 問題データベース（180問）
 ├── README.md          # ユーザー向けドキュメント
 └── CLAUDE.md          # このファイル（開発者向け）
 ```
@@ -182,7 +182,7 @@ const questionsData = {
 5. `real-estate`: 不動産
 6. `inheritance`: 相続・事業承継
 
-各カテゴリー: 12問 × 6カテゴリー = **合計72問**
+各カテゴリー: 30問 × 6カテゴリー = **合計180問**
 
 ## CSSアニメーション
 
