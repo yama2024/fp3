@@ -208,21 +208,34 @@ class QuizApp {
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
 
+        // 前の問題ボタン：最初の問題では無効化
         prevBtn.disabled = this.currentQuestionIndex === 0;
+
+        // 次の問題ボタン：現在の問題に回答済みかチェック
+        const isAnswered = this.userAnswers[this.currentQuestionIndex] !== null;
 
         // 最後の問題の場合
         if (this.currentQuestionIndex === this.currentQuestions.length - 1) {
             // 回答済みなら「結果を見る」ボタンとして有効化
-            if (this.userAnswers[this.currentQuestionIndex] !== null) {
+            if (isAnswered) {
                 nextBtn.disabled = false;
                 nextBtn.textContent = '結果を見る';
             } else {
+                // 未回答なら無効化
+                nextBtn.disabled = true;
+                nextBtn.textContent = '結果を見る';
+            }
+        } else {
+            // 最後以外の問題の場合
+            if (isAnswered) {
+                // 回答済みなら「次の問題」ボタンを有効化
+                nextBtn.disabled = false;
+                nextBtn.textContent = '次の問題';
+            } else {
+                // 未回答なら「次の問題」ボタンを無効化
                 nextBtn.disabled = true;
                 nextBtn.textContent = '次の問題';
             }
-        } else {
-            nextBtn.disabled = false;
-            nextBtn.textContent = '次の問題';
         }
     }
 
