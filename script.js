@@ -7,6 +7,9 @@ class QuizApp {
         this.currentQuestionIndex = 0;
         this.correctCount = 0;
         this.userAnswers = [];
+        this.favorites = [];
+        this.showOnlyFavorites = false;
+        this.loadFavoritesFromStorage();
         this.init();
     }
 
@@ -24,6 +27,9 @@ class QuizApp {
         document.getElementById('prev-btn').addEventListener('click', () => this.prevQuestion());
         document.getElementById('next-btn').addEventListener('click', () => this.nextQuestion());
         document.getElementById('reset-btn').addEventListener('click', () => this.resetQuiz());
+
+        // お気に入り数を表示
+        this.updateFavoriteCount();
     }
 
     // 配列をランダムにシャッフルする関数（Fisher-Yatesアルゴリズム）
@@ -92,13 +98,25 @@ class QuizApp {
             }
         }
 
+        // お気に入りボタン
+        const isFav = this.isFavorite(this.currentCategory, question.id);
+        const favoriteIcon = isFav ? '★' : '☆';
+        const favoriteClass = isFav ? 'favorite-active' : '';
+
         // 問題HTMLを生成
         let html = `
             <div class="question">
                 ${feedbackBanner}
-                <p class="question-text">
-                    <strong>問題${this.currentQuestionIndex + 1}:</strong> ${question.question}
-                </p>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <p class="question-text" style="flex: 1; margin: 0;">
+                        <strong>問題${this.currentQuestionIndex + 1}:</strong> ${question.question}
+                    </p>
+                    <button class="favorite-btn ${favoriteClass}"
+                            onclick="quizApp.toggleFavorite('${this.currentCategory}', ${question.id})"
+                            title="${isFav ? 'お気に入りから削除' : 'お気に入りに追加'}">
+                        ${favoriteIcon}
+                    </button>
+                </div>
                 <ul class="options">
         `;
 
@@ -316,6 +334,64 @@ class QuizApp {
         `;
 
         container.innerHTML = html;
+    }
+
+    // お気に入り機能
+    getQuestionId(category, questionId) {
+        return `${category}-${questionId}`;
+    }
+
+    isFavorite(category, questionId) {
+        const id = this.getQuestionId(category, questionId);
+        return this.favorites.includes(id);
+    }
+
+    toggleFavorite(category, questionId) {
+        const id = this.getQuestionId(category, questionId);
+        const index = this.favorites.indexOf(id);
+
+        if (index > -1) {
+            // お気に入りから削除
+            this.favorites.splice(index, 1);
+        } else {
+            // お気に入りに追加
+            this.favorites.push(id);
+        }
+
+        this.saveFavoritesToStorage();
+        this.updateFavoriteCount();
+        this.displayQuestion(); // 表示を更新
+    }
+
+    updateFavoriteCount() {
+        const countElement = document.getElementById('favorite-count');
+        if (countElement) {
+            countElement.textContent = this.favorites.length;
+        }
+    }
+
+    saveFavoritesToStorage() {
+        try {
+            localStorage.setItem('fp3-favorites', JSON.stringify(this.favorites));
+        } catch (e) {
+            console.error('お気に入りの保存に失敗しました:', e);
+        }
+    }
+
+    loadFavoritesFromStorage() {
+        try {
+            const saved = localStorage.getItem('fp3-favorites');
+            if (saved) {
+                this.favorites = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('お気に入りの読み込みに失敗しました:', e);
+            this.favorites = [];
+        }
+    }
+
+    getFavoriteCount() {
+        return this.favorites.length;
     }
 }
 

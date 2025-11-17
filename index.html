@@ -43,7 +43,12 @@
         </section>
 
         <section class="category-section">
-            <h2>分野別過去問題</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">分野別過去問題</h2>
+                <div id="favorite-counter" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; color: #333; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    ★ お気に入り: <span id="favorite-count">0</span>問
+                </div>
+            </div>
             <div class="categories">
                 <button class="category-btn" data-category="life-planning">ライフプランニングと資金計画</button>
                 <button class="category-btn" data-category="risk-management">リスク管理</button>
