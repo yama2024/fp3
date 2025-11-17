@@ -80,6 +80,21 @@ class QuizApp {
         const userAnswer = this.userAnswers[this.currentQuestionIndex];
         const isCorrect = isAnswered && userAnswer === question.correctAnswer;
 
+        // 最初の問題でお気に入り機能のヘルプを表示
+        let favoriteHelp = '';
+        if (this.currentQuestionIndex === 0 && this.favorites.length === 0) {
+            favoriteHelp = `
+                <div style="background: linear-gradient(135deg, #fff5e6 0%, #ffe5b4 100%);
+                            padding: 1rem; margin-bottom: 1rem; border-radius: 8px;
+                            border: 2px solid #ffd700; text-align: center;">
+                    <strong style="color: #ff8c00; font-size: 1.1rem;">💡 重要な問題は右上の★ボタンでお気に入り登録できます！</strong>
+                    <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0 0 0;">
+                        後で復習したい問題を保存しておきましょう
+                    </p>
+                </div>
+            `;
+        }
+
         // フィードバックバナー
         let feedbackBanner = '';
         if (isAnswered) {
@@ -106,17 +121,23 @@ class QuizApp {
         // 問題HTMLを生成
         let html = `
             <div class="question">
+                ${favoriteHelp}
                 ${feedbackBanner}
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem;">
                     <p class="question-text" style="flex: 1; margin: 0;">
                         <strong>問題${this.currentQuestionIndex + 1}:</strong> ${question.question}
                     </p>
-                    <button class="favorite-btn ${favoriteClass}"
-                            data-category="${this.currentCategory}"
-                            data-question-id="${question.id}"
-                            title="${isFav ? 'お気に入りから削除' : 'お気に入りに追加'}">
-                        ${favoriteIcon}
-                    </button>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.3rem;">
+                        <button class="favorite-btn ${favoriteClass}"
+                                data-category="${this.currentCategory}"
+                                data-question-id="${question.id}"
+                                title="${isFav ? 'お気に入りから削除' : 'お気に入りに追加'}">
+                            ${favoriteIcon}
+                        </button>
+                        <span style="font-size: 0.75rem; color: #ff8c00; font-weight: 600; white-space: nowrap;">
+                            ${isFav ? 'お気に入り' : 'クリックして保存'}
+                        </span>
+                    </div>
                 </div>
                 <ul class="options">
         `;

@@ -43,10 +43,18 @@
         </section>
 
         <section class="category-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                 <h2 style="margin: 0;">分野別過去問題</h2>
-                <div id="favorite-counter" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; color: #333; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                    ★ お気に入り: <span id="favorite-count">0</span>問
+                <div id="favorite-counter" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+                                                    padding: 1rem 2rem;
+                                                    border-radius: 12px;
+                                                    font-weight: 700;
+                                                    color: #333;
+                                                    font-size: 1.2rem;
+                                                    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+                                                    border: 3px solid #ff8c00;
+                                                    animation: counterPulse 2s ease-in-out infinite;">
+                    ★ お気に入り: <span id="favorite-count" style="color: #d2691e; font-size: 1.5rem;">0</span>問
                 </div>
             </div>
             <div class="categories">

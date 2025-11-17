@@ -184,37 +184,74 @@ h3 {
 
 /* お気に入りボタン */
 .favorite-btn {
-    background: none;
-    border: none;
-    font-size: 2rem;
+    background: linear-gradient(135deg, #fff5e6 0%, #ffe5b4 100%);
+    border: 3px solid #ffd700;
+    font-size: 2.5rem;
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 0.8rem 1.2rem;
     transition: all 0.3s ease;
-    color: #ccc;
+    color: #999;
     line-height: 1;
-    min-width: 3rem;
+    min-width: 4rem;
     text-align: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    position: relative;
+    animation: favoritePulse 2s ease-in-out infinite;
 }
 
 .favorite-btn:hover {
-    transform: scale(1.2);
+    transform: scale(1.25) rotate(10deg);
     color: #ffd700;
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+    background: linear-gradient(135deg, #fffacd 0%, #ffd700 100%);
 }
 
 .favorite-btn.favorite-active {
     color: #ffd700;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    border-color: #ff8c00;
+    box-shadow: 0 6px 20px rgba(255, 140, 0, 0.5);
     animation: favoriteGlow 0.5s ease;
+    text-shadow: 0 2px 4px rgba(255, 140, 0, 0.3);
 }
 
+.favorite-btn.favorite-active:hover {
+    transform: scale(1.3) rotate(-10deg);
+}
+
+/* 常時パルスアニメーション（目立たせる） */
+@keyframes favoritePulse {
+    0%, 100% {
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 16px rgba(255, 215, 0, 0.5);
+    }
+}
+
+/* クリック時のグローアニメーション */
 @keyframes favoriteGlow {
     0% {
         transform: scale(1);
     }
     50% {
-        transform: scale(1.3);
+        transform: scale(1.4);
     }
     100% {
         transform: scale(1);
+    }
+}
+
+/* お気に入りカウンターのパルスアニメーション */
+@keyframes counterPulse {
+    0%, 100% {
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        transform: scale(1.05);
     }
 }
 
