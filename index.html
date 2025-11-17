@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FP3級 学習サイト 2025 - 過去問題と解答集</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>FP3級 学習サイト 2025</h1>
+            <p class="subtitle">過去問題で実践的に学ぶファイナンシャルプランナー試験対策</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="intro">
+            <h2>FP3級試験について</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>試験形式</h3>
+                    <p>2025年よりCBT方式で実施</p>
+                    <p>毎月実施・全国47都道府県で受験可能</p>
+                </div>
+                <div class="info-card">
+                    <h3>試験科目</h3>
+                    <ul>
+                        <li>ライフプランニングと資金計画</li>
+                        <li>リスク管理</li>
+                        <li>金融資産運用</li>
+                        <li>タックスプランニング</li>
+                        <li>不動産</li>
+                        <li>相続・事業承継</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>合格基準</h3>
+                    <p>学科試験：60点満点中36点以上</p>
+                    <p>実技試験：100点満点中60点以上</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="category-section">
+            <h2>分野別過去問題</h2>
+            <div class="categories">
+                <button class="category-btn" data-category="life-planning">ライフプランニングと資金計画</button>
+                <button class="category-btn" data-category="risk-management">リスク管理</button>
+                <button class="category-btn" data-category="financial-assets">金融資産運用</button>
+                <button class="category-btn" data-category="tax">タックスプランニング</button>
+                <button class="category-btn" data-category="real-estate">不動産</button>
+                <button class="category-btn" data-category="inheritance">相続・事業承継</button>
+            </div>
+        </section>
+
+        <section class="quiz-section" id="quiz-section">
+            <div class="quiz-header">
+                <h2 id="current-category">問題を選択してください</h2>
+                <div class="quiz-stats">
+                    <span>問題 <span id="current-question">0</span> / <span id="total-questions">0</span></span>
+                    <span>正解数: <span id="correct-count">0</span></span>
+                </div>
+            </div>
+
+            <div class="quiz-container" id="quiz-container">
+                <p class="instruction">上記のカテゴリーボタンから学習したい分野を選択してください。</p>
+            </div>
+
+            <div class="quiz-controls" id="quiz-controls" style="display: none;">
+                <button class="btn btn-primary" id="prev-btn">前の問題</button>
+                <button class="btn btn-primary" id="next-btn">次の問題</button>
+                <button class="btn btn-secondary" id="reset-btn">最初から</button>
+            </div>
+        </section>
+
+        <section class="study-tips">
+            <h2>学習のポイント</h2>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <h3>過去問重視</h3>
+                    <p>FP3級は過去問から類似問題が多く出題されます。繰り返し解くことで合格率が高まります。</p>
+                </div>
+                <div class="tip-card">
+                    <h3>最新法令対応</h3>
+                    <p>試験は実施年度の法令に基づきます。特に税制改正や社会保険の変更に注意しましょう。</p>
+                </div>
+                <div class="tip-card">
+                    <h3>実技対策</h3>
+                    <p>学科だけでなく実技試験も重要です。計算問題や図表の読み取りに慣れておきましょう。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 FP3級学習サイト - 過去問題で合格を目指す</p>
+            <p class="disclaimer">本サイトは学習支援を目的としています。最新の試験情報は日本FP協会の公式サイトをご確認ください。</p>
+        </div>
+    </footer>
+
+    <script src="questions.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
