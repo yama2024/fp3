@@ -112,7 +112,8 @@ class QuizApp {
                         <strong>問題${this.currentQuestionIndex + 1}:</strong> ${question.question}
                     </p>
                     <button class="favorite-btn ${favoriteClass}"
-                            onclick="quizApp.toggleFavorite('${this.currentCategory}', ${question.id})"
+                            data-category="${this.currentCategory}"
+                            data-question-id="${question.id}"
                             title="${isFav ? 'お気に入りから削除' : 'お気に入りに追加'}">
                         ${favoriteIcon}
                     </button>
@@ -165,6 +166,16 @@ class QuizApp {
                     const index = parseInt(option.dataset.index);
                     this.selectAnswer(index);
                 });
+            });
+        }
+
+        // お気に入りボタンのクリックイベント
+        const favoriteBtn = container.querySelector('.favorite-btn');
+        if (favoriteBtn) {
+            favoriteBtn.addEventListener('click', () => {
+                const category = favoriteBtn.dataset.category;
+                const questionId = parseInt(favoriteBtn.dataset.questionId);
+                this.toggleFavorite(category, questionId);
             });
         }
 
