@@ -30,28 +30,46 @@ class QuizApp {
         document.getElementById('next-btn').addEventListener('click', () => this.nextQuestion());
         document.getElementById('reset-btn').addEventListener('click', () => this.resetQuiz());
 
-        // お気に入りカウンターのクリックイベント
+        // お気に入りカウンターのクリック・キーボードイベント
         const favoriteCounter = document.getElementById('favorite-counter');
         if (favoriteCounter) {
             favoriteCounter.addEventListener('click', () => this.loadFavoritesOnly());
+            favoriteCounter.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.loadFavoritesOnly();
+                }
+            });
         }
 
-        // 学習統計ボタンのクリックイベント
+        // 学習統計ボタンのキーボードイベント
         const statsBtn = document.getElementById('stats-btn');
         if (statsBtn) {
             statsBtn.addEventListener('click', () => this.showStatsPage());
         }
 
-        // 苦手問題カウンターのクリックイベント
+        // 苦手問題カウンターのクリック・キーボードイベント
         const weakCounter = document.getElementById('weak-counter');
         if (weakCounter) {
             weakCounter.addEventListener('click', () => this.loadWeakQuestionsOnly());
+            weakCounter.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.loadWeakQuestionsOnly();
+                }
+            });
         }
 
-        // 未解答問題カウンターのクリックイベント
+        // 未解答問題カウンターのクリック・キーボードイベント
         const unansweredCounter = document.getElementById('unanswered-counter');
         if (unansweredCounter) {
             unansweredCounter.addEventListener('click', () => this.loadUnansweredQuestionsOnly());
+            unansweredCounter.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.loadUnansweredQuestionsOnly();
+                }
+            });
         }
 
         // カウンター数を表示
@@ -61,6 +79,9 @@ class QuizApp {
 
         // キーボードショートカットのイベントリスナー
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcut(e));
+
+        // 初回訪問時にキーボードヒントを表示
+        this.showKeyboardHint();
     }
 
     // 配列をランダムにシャッフルする関数（Fisher-Yatesアルゴリズム）
@@ -95,6 +116,9 @@ class QuizApp {
 
         // コントロールボタンを表示
         document.getElementById('quiz-controls').style.display = 'flex';
+
+        // トースト通知を表示
+        this.showToast(`${questionsData[category].title}を開始しました！`, 'info', 2500);
 
         // 最初の問題を表示
         this.displayQuestion();
@@ -198,6 +222,9 @@ class QuizApp {
         // コントロールボタンを表示
         document.getElementById('quiz-controls').style.display = 'flex';
 
+        // トースト通知を表示
+        this.showToast(`苦手問題 ${weakQuestions.length}問を読み込みました`, 'warning', 3000);
+
         // 最初の問題を表示
         this.displayQuestion();
     }
@@ -242,6 +269,9 @@ class QuizApp {
 
         // コントロールボタンを表示
         document.getElementById('quiz-controls').style.display = 'flex';
+
+        // トースト通知を表示
+        this.showToast(`未解答問題 ${unansweredQuestions.length}問を読み込みました`, 'info', 3000);
 
         // 最初の問題を表示
         this.displayQuestion();
@@ -608,9 +638,11 @@ class QuizApp {
         if (index > -1) {
             // お気に入りから削除
             this.favorites.splice(index, 1);
+            this.showToast('お気に入りから削除しました', 'info', 2000);
         } else {
             // お気に入りに追加
             this.favorites.push(id);
+            this.showToast('お気に入りに追加しました ⭐', 'success', 2000);
         }
 
         this.saveFavoritesToStorage();
@@ -1085,6 +1117,106 @@ class QuizApp {
         if (modal) {
             modal.style.display = 'none';
         }
+    }
+
+    // ========== UI/UX改善: トースト通知とヒント表示 ==========
+
+    /**
+     * トースト通知を表示
+     * @param {string} message - 表示するメッセージ
+     * @param {string} type - success, error, info, warning
+     * @param {number} duration - 表示時間（ミリ秒）
+     */
+    showToast(message, type = 'info', duration = 3000) {
+        // 既存のトーストがあれば削除
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        // トースト要素を作成
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        // アイコンを選択
+        let icon = '🔔';
+        if (type === 'success') icon = '✅';
+        else if (type === 'error') icon = '❌';
+        else if (type === 'warning') icon = '⚠️';
+        else if (type === 'info') icon = 'ℹ️';
+
+        toast.innerHTML = `
+            <div class="toast-icon">${icon}</div>
+            <div class="toast-content">
+                <div class="toast-message">${message}</div>
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+
+        // 自動で削除
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+
+    /**
+     * キーボードショートカットのヒントを表示（初回のみ）
+     */
+    showKeyboardHint() {
+        // localStorage でヒントを既に表示したかチェック
+        const hintShown = localStorage.getItem('fp3-keyboard-hint-shown');
+
+        if (!hintShown) {
+            setTimeout(() => {
+                // ヒント要素を作成
+                const hint = document.createElement('div');
+                hint.className = 'keyboard-hint';
+                hint.innerHTML = `
+                    <span>💡 ヒント: <kbd>?</kbd> キーでショートカット一覧を表示</span>
+                `;
+
+                document.body.appendChild(hint);
+
+                // 8秒後に削除
+                setTimeout(() => {
+                    hint.style.opacity = '0';
+                    hint.style.transform = 'translateX(100%)';
+                    setTimeout(() => hint.remove(), 500);
+                }, 8000);
+
+                // 表示したことを記録
+                localStorage.setItem('fp3-keyboard-hint-shown', 'true');
+            }, 2000); // ページロード2秒後に表示
+        }
+    }
+
+    /**
+     * プログレスバーを作成・更新
+     * @param {number} current - 現在の進捗
+     * @param {number} total - 合計
+     * @param {HTMLElement} container - 挿入先のコンテナ
+     */
+    createProgressBar(current, total, container) {
+        const percent = Math.round((current / total) * 100);
+
+        let progressBar = container.querySelector('.progress-bar');
+        if (!progressBar) {
+            progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            progressBar.innerHTML = '<div class="progress-fill"></div>';
+            container.appendChild(progressBar);
+        }
+
+        const progressFill = progressBar.querySelector('.progress-fill');
+        progressFill.style.width = `${percent}%`;
+        progressFill.setAttribute('aria-valuenow', percent);
+        progressFill.setAttribute('aria-valuemin', '0');
+        progressFill.setAttribute('aria-valuemax', '100');
+        progressFill.setAttribute('role', 'progressbar');
+        progressFill.setAttribute('aria-label', `${current}問中${total}問完了（${percent}%）`);
     }
 }
 

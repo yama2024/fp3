@@ -5,12 +5,45 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
     line-height: 1.6;
     color: #333;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* アクセシビリティ: フォーカス状態の改善 */
+*:focus {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+*:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+/* リデュースモーション対応 */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 .container {
@@ -749,4 +782,450 @@ footer {
     background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
     color: #721c24;
     border: 2px solid #dc3545;
+}
+
+/* ========== UI/UX改善: 新規スタイル ========== */
+
+/* ツールチップ */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip::before,
+.tooltip::after {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tooltip::before {
+    content: attr(data-tooltip);
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-5px);
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 1000;
+}
+
+.tooltip::after {
+    content: '';
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+}
+
+.tooltip:hover::before,
+.tooltip:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* キーボードショートカットヒント */
+.keyboard-hint {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(102, 126, 234, 0.95);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: slideInRight 0.5s ease;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.keyboard-hint kbd {
+    background: white;
+    color: #667eea;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ローディングスピナー */
+.loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* プログレスバー（改善版） */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1rem 0;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* トーストメッセージ */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    animation: slideInRight 0.5s ease;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.toast.success {
+    border-left: 4px solid #28a745;
+}
+
+.toast.error {
+    border-left: 4px solid #dc3545;
+}
+
+.toast.info {
+    border-left: 4px solid #17a2b8;
+}
+
+.toast.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.toast-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.toast-message {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* ボタンのアクティブ状態改善 */
+.btn:active,
+.category-btn:active {
+    transform: scale(0.97);
+    transition-duration: 0.1s;
+}
+
+/* ボタンのフォーカス状態改善 */
+.btn:focus-visible,
+.category-btn:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(102, 126, 234, 0.2);
+}
+
+/* 選択肢のホバーとフォーカス改善 */
+.option:not(.disabled):hover {
+    transform: translateX(5px);
+}
+
+.option:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* カードのホバーエフェクト改善 */
+.info-card,
+.tip-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.info-card:hover,
+.tip-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* スケルトンローディング */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 25%,
+        #e0e0e0 50%,
+        #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-title {
+    height: 1.5rem;
+    width: 60%;
+    margin-bottom: 1rem;
+}
+
+.skeleton-button {
+    height: 3rem;
+    width: 120px;
+    border-radius: 8px;
+}
+
+/* パフォーマンス最適化 */
+.btn,
+.category-btn,
+.option,
+.favorite-btn {
+    will-change: transform;
+}
+
+.progress-fill,
+.loading-spinner {
+    will-change: transform, width;
+}
+
+/* スムーズスクロール */
+.smooth-scroll {
+    scroll-behavior: smooth;
+}
+
+/* アニメーション改善 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* プルスエフェクト */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* カスタムスクロールバー（Webkit） */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+}
+
+/* セレクションカラー */
+::selection {
+    background: rgba(102, 126, 234, 0.3);
+    color: #333;
+}
+
+::-moz-selection {
+    background: rgba(102, 126, 234, 0.3);
+    color: #333;
+}
+
+/* モーダルの改善 */
+#shortcuts-modal {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+#shortcuts-modal > div {
+    animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* カウンターのアクセシビリティ改善 */
+#favorite-counter,
+#weak-counter,
+#unanswered-counter,
+#stats-btn {
+    position: relative;
+}
+
+#favorite-counter:focus-visible,
+#weak-counter:focus-visible,
+#unanswered-counter:focus-visible,
+#stats-btn:focus-visible {
+    outline: 3px solid white;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.3);
+}
+
+/* タッチデバイス用の改善 */
+@media (hover: none) and (pointer: coarse) {
+    /* タッチデバイスではホバー効果を無効化し、タップ時のみ反応 */
+    .btn:hover,
+    .category-btn:hover,
+    .option:hover {
+        transform: none;
+    }
+
+    /* タップ時のフィードバック強化 */
+    .btn:active,
+    .category-btn:active {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+
+    /* タップハイライトの色をカスタマイズ */
+    * {
+        -webkit-tap-highlight-color: rgba(102, 126, 234, 0.2);
+    }
+}
+
+/* ダークモードサポート（ユーザーの設定を尊重） */
+@media (prefers-color-scheme: dark) {
+    /* 将来的にダークモード対応を追加する場合のプレースホルダー */
+    /* body { background: ...; } */
+}
+
+/* ハイコントラストモード対応 */
+@media (prefers-contrast: high) {
+    *:focus-visible {
+        outline-width: 4px;
+        outline-color: currentColor;
+    }
+
+    .btn,
+    .category-btn {
+        border: 2px solid currentColor;
+    }
+}
+
+/* レスポンシブ: ツールチップとトースト */
+@media (max-width: 768px) {
+    .tooltip::before {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .toast {
+        min-width: auto;
+        max-width: calc(100vw - 40px);
+        right: 10px;
+        top: 10px;
+    }
+
+    .keyboard-hint {
+        bottom: 10px;
+        right: 10px;
+        font-size: 0.8rem;
+        padding: 0.6rem 1rem;
+    }
 }

@@ -46,7 +46,11 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                 <h2 style="margin: 0;">分野別過去問題</h2>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <div id="favorite-counter" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+                    <div id="favorite-counter"
+                         role="button"
+                         tabindex="0"
+                         aria-label="お気に入り問題を表示"
+                         style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
                                                         padding: 1rem 2rem;
                                                         border-radius: 12px;
                                                         font-weight: 700;
@@ -58,9 +62,13 @@
                                                         cursor: pointer;
                                                         transition: all 0.3s ease;
                                                         user-select: none;">
-                        ★ お気に入り: <span id="favorite-count" style="color: #d2691e; font-size: 1.5rem;">0</span>問
+                        ★ お気に入り: <span id="favorite-count" aria-live="polite" style="color: #d2691e; font-size: 1.5rem;">0</span>問
                     </div>
-                    <div id="weak-counter" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+                    <div id="weak-counter"
+                         role="button"
+                         tabindex="0"
+                         aria-label="苦手問題を表示"
+                         style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
                                                     padding: 1rem 2rem;
                                                     border-radius: 12px;
                                                     font-weight: 700;
@@ -71,9 +79,13 @@
                                                     cursor: pointer;
                                                     transition: all 0.3s ease;
                                                     user-select: none;">
-                        🔴 苦手: <span id="weak-count" style="font-size: 1.5rem;">0</span>問
+                        🔴 苦手: <span id="weak-count" aria-live="polite" style="font-size: 1.5rem;">0</span>問
                     </div>
-                    <div id="unanswered-counter" style="background: linear-gradient(135deg, #4dabf7 0%, #339af0 100%);
+                    <div id="unanswered-counter"
+                         role="button"
+                         tabindex="0"
+                         aria-label="未解答問題を表示"
+                         style="background: linear-gradient(135deg, #4dabf7 0%, #339af0 100%);
                                                         padding: 1rem 2rem;
                                                         border-radius: 12px;
                                                         font-weight: 700;
@@ -84,9 +96,11 @@
                                                         cursor: pointer;
                                                         transition: all 0.3s ease;
                                                         user-select: none;">
-                        📝 未解答: <span id="unanswered-count" style="font-size: 1.5rem;">0</span>問
+                        📝 未解答: <span id="unanswered-count" aria-live="polite" style="font-size: 1.5rem;">0</span>問
                     </div>
-                    <button id="stats-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    <button id="stats-btn"
+                            aria-label="学習統計を表示"
+                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                                                     color: white;
                                                     padding: 1rem 2rem;
                                                     border-radius: 12px;
@@ -101,13 +115,13 @@
                     </button>
                 </div>
             </div>
-            <div class="categories">
-                <button class="category-btn" data-category="life-planning">ライフプランニングと資金計画</button>
-                <button class="category-btn" data-category="risk-management">リスク管理</button>
-                <button class="category-btn" data-category="financial-assets">金融資産運用</button>
-                <button class="category-btn" data-category="tax">タックスプランニング</button>
-                <button class="category-btn" data-category="real-estate">不動産</button>
-                <button class="category-btn" data-category="inheritance">相続・事業承継</button>
+            <div class="categories" role="navigation" aria-label="学習カテゴリー選択">
+                <button class="category-btn" data-category="life-planning" aria-label="ライフプランニングと資金計画の問題を開始">ライフプランニングと資金計画</button>
+                <button class="category-btn" data-category="risk-management" aria-label="リスク管理の問題を開始">リスク管理</button>
+                <button class="category-btn" data-category="financial-assets" aria-label="金融資産運用の問題を開始">金融資産運用</button>
+                <button class="category-btn" data-category="tax" aria-label="タックスプランニングの問題を開始">タックスプランニング</button>
+                <button class="category-btn" data-category="real-estate" aria-label="不動産の問題を開始">不動産</button>
+                <button class="category-btn" data-category="inheritance" aria-label="相続・事業承継の問題を開始">相続・事業承継</button>
             </div>
         </section>
 
@@ -153,10 +167,10 @@
                 <p class="instruction">上記のカテゴリーボタンから学習したい分野を選択してください。</p>
             </div>
 
-            <div class="quiz-controls" id="quiz-controls" style="display: none;">
-                <button class="btn btn-primary" id="prev-btn">前の問題</button>
-                <button class="btn btn-primary" id="next-btn">次の問題</button>
-                <button class="btn btn-secondary" id="reset-btn">最初から</button>
+            <div class="quiz-controls" id="quiz-controls" style="display: none;" role="navigation" aria-label="問題ナビゲーション">
+                <button class="btn btn-primary" id="prev-btn" aria-label="前の問題に戻る">前の問題</button>
+                <button class="btn btn-primary" id="next-btn" aria-label="次の問題へ進む">次の問題</button>
+                <button class="btn btn-secondary" id="reset-btn" aria-label="問題をリセットして最初から">最初から</button>
             </div>
         </section>
 
@@ -187,11 +201,15 @@
     </footer>
 
     <!-- ショートカットヘルプモーダル -->
-    <div id="shortcuts-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    <div id="shortcuts-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="shortcuts-modal-title"
+         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                                       background: rgba(0, 0, 0, 0.7); z-index: 9999; justify-content: center; align-items: center;">
         <div style="background: white; padding: 2rem; border-radius: 16px; max-width: 600px; width: 90%;
                     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); max-height: 80vh; overflow-y: auto;">
-            <h2 style="margin: 0 0 1.5rem 0; color: #2c3e50; text-align: center;">⌨️ キーボードショートカット</h2>
+            <h2 id="shortcuts-modal-title" style="margin: 0 0 1.5rem 0; color: #2c3e50; text-align: center;">⌨️ キーボードショートカット</h2>
 
             <div style="margin-bottom: 2rem;">
                 <h3 style="color: #667eea; margin-bottom: 0.5rem; font-size: 1.1rem;">📝 問題解答</h3>
