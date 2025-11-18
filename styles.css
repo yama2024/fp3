@@ -1229,3 +1229,70 @@ footer {
         padding: 0.6rem 1rem;
     }
 }
+
+/* ========== 本試験モード用スタイル ========== */
+
+/* 試験モード開始ボタンのパルスアニメーション */
+@keyframes examButtonPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+    }
+}
+
+/* 試験モード開始ボタンのホバー効果 */
+#exam-mode-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+#exam-mode-btn:active {
+    transform: scale(0.98);
+}
+
+/* 試験終了ボタン（危険色） */
+.btn-danger {
+    background: linear-gradient(135deg, #ff4757 0%, #c44569 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #ff6b81 0%, #d35d7a 100%);
+    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(255, 71, 87, 0.3);
+}
+
+/* 試験タイマーのパルスアニメーション（残り5分切った時） */
+#exam-time-display {
+    transition: color 0.3s ease;
+}
+
+/* 試験確認モーダルのボタンホバー効果 */
+#exam-confirm-start-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.5);
+}
+
+#exam-confirm-start-btn:active {
+    transform: scale(0.98);
+}
+
+#exam-confirm-cancel-btn:hover {
+    background: #dee2e6;
+    border-color: #adb5bd;
+}
+
+#exam-confirm-cancel-btn:active {
+    transform: scale(0.98);
+}

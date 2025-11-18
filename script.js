@@ -10,6 +10,13 @@ class QuizApp {
         this.favorites = [];
         this.showOnlyFavorites = false;
         this.progress = {}; // 学習進捗管理（問題ごとの正解/不正解履歴）
+
+        // 本試験モード用プロパティ
+        this.examMode = false;              // 本試験モードフラグ
+        this.examTimeRemaining = 3600;      // 残り時間（秒）60分 = 3600秒
+        this.examTimer = null;              // タイマーのinterval ID
+        this.examStartTime = null;          // 試験開始時刻
+
         this.loadFavoritesFromStorage();
         this.loadProgressFromStorage();
         this.init();
@@ -76,6 +83,28 @@ class QuizApp {
         this.updateFavoriteCount();
         this.updateWeakQuestionsCount();
         this.updateUnansweredQuestionsCount();
+
+        // 本試験モードボタンのイベントリスナー
+        const examModeBtn = document.getElementById('exam-mode-btn');
+        if (examModeBtn) {
+            examModeBtn.addEventListener('click', () => this.showExamConfirmModal());
+        }
+
+        // 本試験確認モーダルのボタン
+        const examConfirmStartBtn = document.getElementById('exam-confirm-start-btn');
+        const examConfirmCancelBtn = document.getElementById('exam-confirm-cancel-btn');
+        if (examConfirmStartBtn) {
+            examConfirmStartBtn.addEventListener('click', () => this.startExamMode());
+        }
+        if (examConfirmCancelBtn) {
+            examConfirmCancelBtn.addEventListener('click', () => this.hideExamConfirmModal());
+        }
+
+        // 試験終了ボタン
+        const endExamBtn = document.getElementById('end-exam-btn');
+        if (endExamBtn) {
+            endExamBtn.addEventListener('click', () => this.endExamMode());
+        }
 
         // キーボードショートカットのイベントリスナー
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcut(e));
@@ -321,19 +350,19 @@ class QuizApp {
             }
         }
 
-        // お気に入りボタン
+        // お気に入りボタン（試験モードでは非表示）
         // お気に入りカテゴリーの場合はoriginalCategoryを使用
         const categoryForFavorite = question.originalCategory || this.currentCategory;
         const isFav = this.isFavorite(categoryForFavorite, question.id);
         const favoriteIcon = isFav ? '★' : '☆';
         const favoriteClass = isFav ? 'favorite-active' : '';
 
-        // 学習進捗バッジ
+        // 学習進捗バッジ（試験モードでは非表示）
         const progress = this.getQuestionProgress(categoryForFavorite, question.id);
         const accuracy = this.getQuestionAccuracy(categoryForFavorite, question.id);
         let progressBadge = '';
 
-        if (progress.totalAttempts > 0) {
+        if (!this.examMode && progress.totalAttempts > 0) {
             let badgeColor = '#6c757d'; // グレー（デフォルト）
             let badgeText = '未解答';
 
@@ -369,6 +398,7 @@ class QuizApp {
                     <p class="question-text" style="flex: 1; margin: 0;">
                         <strong>問題${this.currentQuestionIndex + 1}:</strong> ${question.question}
                     </p>
+                    ${!this.examMode ? `
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 0.3rem;">
                         <button class="favorite-btn ${favoriteClass}"
                                 data-category="${categoryForFavorite}"
@@ -381,6 +411,7 @@ class QuizApp {
                         </span>
                         ${progressBadge}
                     </div>
+                    ` : ''}
                 </div>
                 <ul class="options">
         `;
@@ -465,13 +496,16 @@ class QuizApp {
             document.getElementById('correct-count').textContent = this.correctCount;
         }
 
-        // 学習進捗を記録（お気に入りカテゴリーの場合はoriginalCategoryを使用）
-        const categoryForProgress = question.originalCategory || this.currentCategory;
-        this.recordProgress(categoryForProgress, question.id, isCorrect);
+        // 学習進捗を記録（試験モードでは記録しない）
+        if (!this.examMode) {
+            // お気に入りカテゴリーの場合はoriginalCategoryを使用
+            const categoryForProgress = question.originalCategory || this.currentCategory;
+            this.recordProgress(categoryForProgress, question.id, isCorrect);
 
-        // カウンターを更新（苦手問題・未解答問題の数が変わる可能性があるため）
-        this.updateWeakQuestionsCount();
-        this.updateUnansweredQuestionsCount();
+            // カウンターを更新（苦手問題・未解答問題の数が変わる可能性があるため）
+            this.updateWeakQuestionsCount();
+            this.updateUnansweredQuestionsCount();
+        }
 
         // 問題を再表示（解説とフィードバックを表示）
         this.displayQuestion();
@@ -517,27 +551,45 @@ class QuizApp {
         // 次の問題ボタン：現在の問題に回答済みかチェック
         const isAnswered = this.userAnswers[this.currentQuestionIndex] !== null;
 
-        // 最後の問題の場合
-        if (this.currentQuestionIndex === this.currentQuestions.length - 1) {
-            // 回答済みなら「結果を見る」ボタンとして有効化
-            if (isAnswered) {
-                nextBtn.disabled = false;
-                nextBtn.textContent = '結果を見る';
+        // 試験モードの場合
+        if (this.examMode) {
+            // 最後の問題の場合
+            if (this.currentQuestionIndex === this.currentQuestions.length - 1) {
+                nextBtn.disabled = !isAnswered;
+                nextBtn.textContent = '次の問題';
             } else {
-                // 未回答なら無効化
-                nextBtn.disabled = true;
-                nextBtn.textContent = '結果を見る';
+                nextBtn.disabled = !isAnswered;
+                nextBtn.textContent = '次の問題';
+            }
+            // 試験終了ボタンは常に有効（確認ダイアログがあるため）
+            const endExamBtn = document.getElementById('end-exam-btn');
+            if (endExamBtn) {
+                endExamBtn.disabled = false;
             }
         } else {
-            // 最後以外の問題の場合
-            if (isAnswered) {
-                // 回答済みなら「次の問題」ボタンを有効化
-                nextBtn.disabled = false;
-                nextBtn.textContent = '次の問題';
+            // 通常モードの場合
+            // 最後の問題の場合
+            if (this.currentQuestionIndex === this.currentQuestions.length - 1) {
+                // 回答済みなら「結果を見る」ボタンとして有効化
+                if (isAnswered) {
+                    nextBtn.disabled = false;
+                    nextBtn.textContent = '結果を見る';
+                } else {
+                    // 未回答なら無効化
+                    nextBtn.disabled = true;
+                    nextBtn.textContent = '結果を見る';
+                }
             } else {
-                // 未回答なら「次の問題」ボタンを無効化
-                nextBtn.disabled = true;
-                nextBtn.textContent = '次の問題';
+                // 最後以外の問題の場合
+                if (isAnswered) {
+                    // 回答済みなら「次の問題」ボタンを有効化
+                    nextBtn.disabled = false;
+                    nextBtn.textContent = '次の問題';
+                } else {
+                    // 未回答なら「次の問題」ボタンを無効化
+                    nextBtn.disabled = true;
+                    nextBtn.textContent = '次の問題';
+                }
             }
         }
     }
@@ -1044,8 +1096,8 @@ class QuizApp {
 
             case 'r':
             case 'R':
-                // リセット（問題が表示されている場合）
-                if (hasQuestions && this.currentCategory && this.currentCategory !== 'favorites' && this.currentCategory !== 'weak' && this.currentCategory !== 'unanswered') {
+                // リセット（試験モードでは無効、問題が表示されている場合のみ）
+                if (!this.examMode && hasQuestions && this.currentCategory && this.currentCategory !== 'favorites' && this.currentCategory !== 'weak' && this.currentCategory !== 'unanswered') {
                     if (confirm('問題をリセットして最初から始めますか？')) {
                         this.resetQuiz();
                     }
@@ -1055,8 +1107,8 @@ class QuizApp {
 
             case 'f':
             case 'F':
-                // お気に入り追加/削除（問題が表示されている場合）
-                if (hasQuestions) {
+                // お気に入り追加/削除（試験モードでは無効、問題が表示されている場合のみ）
+                if (!this.examMode && hasQuestions) {
                     const question = this.currentQuestions[this.currentQuestionIndex];
                     const categoryForFavorite = question.originalCategory || this.currentCategory;
                     this.toggleFavorite(categoryForFavorite, question.id);
@@ -1066,23 +1118,29 @@ class QuizApp {
 
             case 's':
             case 'S':
-                // 学習統計を表示
-                this.showStatsPage();
-                e.preventDefault();
+                // 学習統計を表示（試験モードでは無効）
+                if (!this.examMode) {
+                    this.showStatsPage();
+                    e.preventDefault();
+                }
                 break;
 
             case 'w':
             case 'W':
-                // 苦手問題を表示
-                this.loadWeakQuestionsOnly();
-                e.preventDefault();
+                // 苦手問題を表示（試験モードでは無効）
+                if (!this.examMode) {
+                    this.loadWeakQuestionsOnly();
+                    e.preventDefault();
+                }
                 break;
 
             case 'u':
             case 'U':
-                // 未解答問題を表示
-                this.loadUnansweredQuestionsOnly();
-                e.preventDefault();
+                // 未解答問題を表示（試験モードでは無効）
+                if (!this.examMode) {
+                    this.loadUnansweredQuestionsOnly();
+                    e.preventDefault();
+                }
                 break;
 
             case '?':
@@ -1217,6 +1275,317 @@ class QuizApp {
         progressFill.setAttribute('aria-valuemax', '100');
         progressFill.setAttribute('role', 'progressbar');
         progressFill.setAttribute('aria-label', `${current}問中${total}問完了（${percent}%）`);
+    }
+
+    // ========== 本試験モード機能 ==========
+
+    /**
+     * 本試験モード確認モーダルを表示
+     */
+    showExamConfirmModal() {
+        const modal = document.getElementById('exam-confirm-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    /**
+     * 本試験モード確認モーダルを非表示
+     */
+    hideExamConfirmModal() {
+        const modal = document.getElementById('exam-confirm-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    /**
+     * 本試験モードを開始
+     */
+    startExamMode() {
+        // モーダルを閉じる
+        this.hideExamConfirmModal();
+
+        // 全カテゴリーから全問題を集める
+        const allQuestions = [];
+        Object.keys(questionsData).forEach(category => {
+            questionsData[category].questions.forEach(question => {
+                allQuestions.push({
+                    ...question,
+                    originalCategory: category
+                });
+            });
+        });
+
+        // 全180問からランダムに60問を選択
+        const shuffled = this.shuffleArray(allQuestions);
+        this.currentQuestions = shuffled.slice(0, 60);
+
+        // 試験モードフラグをON
+        this.examMode = true;
+        this.currentCategory = 'exam'; // 特別なカテゴリー
+        this.currentQuestionIndex = 0;
+        this.correctCount = 0;
+        this.userAnswers = new Array(60).fill(null);
+
+        // タイマーを初期化
+        this.examTimeRemaining = 3600; // 60分
+        this.examStartTime = Date.now();
+
+        // カテゴリータイトルを更新
+        document.getElementById('current-category').textContent = '⏱️ 本試験モード（60分間・60問）';
+
+        // 統計情報を更新
+        document.getElementById('total-questions').textContent = '60';
+        document.getElementById('correct-count').textContent = '0';
+
+        // タイマーを表示
+        const timerElement = document.getElementById('exam-timer');
+        if (timerElement) {
+            timerElement.style.display = 'block';
+        }
+
+        // コントロールボタンを調整（リセットボタンを非表示、試験終了ボタンを表示）
+        document.getElementById('quiz-controls').style.display = 'flex';
+        document.getElementById('reset-btn').style.display = 'none';
+        document.getElementById('end-exam-btn').style.display = 'inline-block';
+
+        // カテゴリーセクションを非表示
+        document.querySelector('.category-section').style.display = 'none';
+
+        // タイマーを開始
+        this.examTimer = setInterval(() => this.updateExamTimer(), 1000);
+
+        // トースト通知を表示
+        this.showToast('本試験モードを開始しました！60分間、頑張ってください！', 'info', 3000);
+
+        // 最初の問題を表示
+        this.displayQuestion();
+    }
+
+    /**
+     * 試験タイマーを更新（1秒ごとに呼ばれる）
+     */
+    updateExamTimer() {
+        this.examTimeRemaining--;
+
+        // 残り時間を表示
+        const display = document.getElementById('exam-time-display');
+        if (display) {
+            display.textContent = this.formatTime(this.examTimeRemaining);
+
+            // 残り5分を切ったら赤色で警告
+            if (this.examTimeRemaining <= 300) {
+                display.style.color = '#ff4757';
+                display.style.animation = 'pulse 1s ease-in-out infinite';
+            }
+        }
+
+        // 時間切れ
+        if (this.examTimeRemaining <= 0) {
+            clearInterval(this.examTimer);
+            this.showToast('制限時間終了！自動的に採点します。', 'warning', 3000);
+            setTimeout(() => this.endExamMode(true), 3000);
+        }
+    }
+
+    /**
+     * 秒数をMM:SS形式に変換
+     * @param {number} seconds - 秒数
+     * @returns {string} MM:SS形式の文字列
+     */
+    formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    /**
+     * 試験モードを終了（採点）
+     * @param {boolean} autoEnd - 時間切れによる自動終了かどうか
+     */
+    endExamMode(autoEnd = false) {
+        // 確認ダイアログ（自動終了の場合はスキップ）
+        if (!autoEnd) {
+            const unansweredCount = this.userAnswers.filter(a => a === null).length;
+            if (unansweredCount > 0) {
+                const confirmEnd = confirm(
+                    `未解答の問題が${unansweredCount}問あります。\n本当に試験を終了しますか？\n\n未解答の問題は不正解として採点されます。`
+                );
+                if (!confirmEnd) {
+                    return;
+                }
+            }
+        }
+
+        // タイマーを停止
+        if (this.examTimer) {
+            clearInterval(this.examTimer);
+            this.examTimer = null;
+        }
+
+        // 試験結果を表示
+        this.showExamResults();
+    }
+
+    /**
+     * 試験結果を表示（本試験モード専用）
+     */
+    showExamResults() {
+        const container = document.getElementById('quiz-container');
+
+        // 正解数を計算（未解答は不正解扱い）
+        let correctCount = 0;
+        this.userAnswers.forEach((answer, index) => {
+            if (answer !== null && answer === this.currentQuestions[index].correctAnswer) {
+                correctCount++;
+            }
+        });
+
+        const totalQuestions = 60;
+        const percentage = Math.round((correctCount / totalQuestions) * 100);
+        const isPassed = correctCount >= 36; // 60点以上で合格
+
+        // 経過時間を計算
+        const elapsedSeconds = 3600 - this.examTimeRemaining;
+        const elapsedTime = this.formatTime(elapsedSeconds);
+
+        // 合格・不合格判定
+        let resultEmoji = '';
+        let resultTitle = '';
+        let resultMessage = '';
+        let resultColor = '';
+
+        if (isPassed) {
+            if (percentage >= 90) {
+                resultEmoji = '🎊';
+                resultTitle = '優秀！満点に近い成績です！';
+                resultMessage = 'この調子で本番に臨めば、確実に合格できます。素晴らしい実力です！';
+                resultColor = '#28a745';
+            } else if (percentage >= 80) {
+                resultEmoji = '🎉';
+                resultTitle = '合格！素晴らしい成績です！';
+                resultMessage = '高得点で合格基準を大きく上回りました。自信を持って本番に臨んでください！';
+                resultColor = '#28a745';
+            } else {
+                resultEmoji = '✅';
+                resultTitle = '合格！よく頑張りました！';
+                resultMessage = '合格基準を満たしています。苦手分野を復習すれば、さらに高得点が狙えます。';
+                resultColor = '#28a745';
+            }
+        } else {
+            if (percentage >= 50) {
+                resultEmoji = '📚';
+                resultTitle = '不合格 - あと少しです！';
+                resultMessage = '合格まであと少し。間違えた問題を復習して、もう一度挑戦しましょう。';
+                resultColor = '#ffc107';
+            } else {
+                resultEmoji = '💪';
+                resultTitle = '不合格 - 基礎から復習しましょう';
+                resultMessage = '焦らず基礎からしっかり学習しましょう。繰り返し解くことで必ず合格できます。';
+                resultColor = '#dc3545';
+            }
+        }
+
+        // 不正解・未解答の問題リスト
+        let incorrectList = '';
+        const incorrectQuestions = [];
+        const unansweredQuestions = [];
+
+        this.userAnswers.forEach((answer, index) => {
+            if (answer === null) {
+                unansweredQuestions.push(index + 1);
+            } else if (answer !== this.currentQuestions[index].correctAnswer) {
+                incorrectQuestions.push(index + 1);
+            }
+        });
+
+        if (incorrectQuestions.length > 0 || unansweredQuestions.length > 0) {
+            incorrectList = `
+                <div style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 12px; text-align: left;">
+                    <h4 style="color: #dc3545; margin-bottom: 1rem;">📝 復習が必要な問題</h4>
+                    ${incorrectQuestions.length > 0 ? `
+                        <p style="color: #666; margin-bottom: 0.5rem;">
+                            <strong>不正解の問題</strong>（${incorrectQuestions.length}問）: ${incorrectQuestions.join(', ')}
+                        </p>
+                    ` : ''}
+                    ${unansweredQuestions.length > 0 ? `
+                        <p style="color: #666;">
+                            <strong>未解答の問題</strong>（${unansweredQuestions.length}問）: ${unansweredQuestions.join(', ')}
+                        </p>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        const html = `
+            <div class="question" style="text-align: center;">
+                <h2 style="font-size: 3.5rem; margin-bottom: 1rem;">${resultEmoji}</h2>
+                <h3 style="color: ${resultColor}; margin-bottom: 1.5rem; font-size: 1.8rem;">
+                    ${isPassed ? '🎊 合格 🎊' : '不合格'}
+                </h3>
+
+                <!-- 得点表示 -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white; padding: 2rem; border-radius: 16px;
+                            margin-bottom: 2rem; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);">
+                    <p style="font-size: 3rem; margin: 0; font-weight: 700;">
+                        ${correctCount} / 60
+                    </p>
+                    <p style="font-size: 1.2rem; margin: 0.5rem 0 0 0; opacity: 0.9;">
+                        正答率: ${percentage}%
+                    </p>
+                    <p style="font-size: 1rem; margin: 1rem 0 0 0; opacity: 0.8;">
+                        所要時間: ${elapsedTime}
+                    </p>
+                </div>
+
+                <!-- 合格基準 -->
+                <div style="background: #fff3cd; padding: 1.5rem; border-radius: 12px;
+                            margin-bottom: 2rem; border: 2px solid #ffc107;">
+                    <p style="margin: 0; color: #856404; font-size: 1.1rem;">
+                        <strong>合格基準: 36問以上正解（60%以上）</strong>
+                    </p>
+                    <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                        あなたの得点: ${correctCount}問正解
+                        ${isPassed ? '✅ 合格' : '❌ 不合格'}
+                    </p>
+                </div>
+
+                <!-- 結果メッセージ -->
+                <p style="font-size: 1.3rem; color: ${resultColor}; font-weight: 600; margin-bottom: 1rem;">
+                    ${resultTitle}
+                </p>
+                <p style="font-size: 1rem; color: #666; margin-bottom: 2rem; line-height: 1.6;">
+                    ${resultMessage}
+                </p>
+
+                ${incorrectList}
+
+                <!-- アクションボタン -->
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="location.reload()"
+                            style="padding: 1rem 3rem; font-size: 1.1rem;">
+                        🏠 トップに戻る
+                    </button>
+                </div>
+
+                <p style="margin-top: 2rem; color: #999; font-size: 0.9rem;">
+                    ※ 本試験モードの結果は学習統計に記録されません
+                </p>
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+        // タイマーを非表示
+        const timerElement = document.getElementById('exam-timer');
+        if (timerElement) {
+            timerElement.style.display = 'none';
+        }
+
+        // コントロールボタンを非表示
+        document.getElementById('quiz-controls').style.display = 'none';
     }
 }
 

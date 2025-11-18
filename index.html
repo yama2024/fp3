@@ -115,6 +115,37 @@
                     </button>
                 </div>
             </div>
+
+            <!-- 本試験モードボタン -->
+            <div style="margin-bottom: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #ff4757 0%, #c44569 100%);
+                        border-radius: 16px; box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+                        border: 3px solid #ff6b81;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: white; font-size: 1.5rem;">⏱️ 本試験モード</h3>
+                        <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 0.95rem;">
+                            60問・60分間の本番形式テスト
+                        </p>
+                    </div>
+                    <button id="exam-mode-btn"
+                            aria-label="本試験モードを開始"
+                            style="background: white;
+                                   color: #ff4757;
+                                   padding: 1.2rem 2.5rem;
+                                   border-radius: 12px;
+                                   font-weight: 700;
+                                   font-size: 1.3rem;
+                                   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                                   border: none;
+                                   cursor: pointer;
+                                   transition: all 0.3s ease;
+                                   animation: examButtonPulse 2s ease-in-out infinite;
+                                   user-select: none;">
+                        🎯 本試験を開始
+                    </button>
+                </div>
+            </div>
+
             <div class="categories" role="navigation" aria-label="学習カテゴリー選択">
                 <button class="category-btn" data-category="life-planning" aria-label="ライフプランニングと資金計画の問題を開始">ライフプランニングと資金計画</button>
                 <button class="category-btn" data-category="risk-management" aria-label="リスク管理の問題を開始">リスク管理</button>
@@ -160,6 +191,12 @@
                 <div class="quiz-stats">
                     <span>問題 <span id="current-question">0</span> / <span id="total-questions">0</span></span>
                     <span>正解数: <span id="correct-count">0</span></span>
+                    <!-- 試験タイマー（試験モード時のみ表示） -->
+                    <div id="exam-timer" style="display: none;">
+                        <span style="font-size: 1.5rem; font-weight: 700; color: #ff4757;">
+                            ⏱️ <span id="exam-time-display">60:00</span>
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -171,6 +208,7 @@
                 <button class="btn btn-primary" id="prev-btn" aria-label="前の問題に戻る">前の問題</button>
                 <button class="btn btn-primary" id="next-btn" aria-label="次の問題へ進む">次の問題</button>
                 <button class="btn btn-secondary" id="reset-btn" aria-label="問題をリセットして最初から">最初から</button>
+                <button class="btn btn-danger" id="end-exam-btn" style="display: none;" aria-label="試験を終了して採点">試験を終了</button>
             </div>
         </section>
 
@@ -245,6 +283,66 @@
                            font-size: 1.1rem; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
                 閉じる (Esc)
             </button>
+        </div>
+    </div>
+
+    <!-- 本試験モード確認モーダル -->
+    <div id="exam-confirm-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="exam-confirm-title"
+         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.8); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 2.5rem; border-radius: 16px; max-width: 650px; width: 90%;
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); border: 4px solid #ff4757;">
+            <h2 id="exam-confirm-title" style="margin: 0 0 1.5rem 0; color: #ff4757; text-align: center; font-size: 1.8rem;">
+                ⚠️ 本試験モード開始確認
+            </h2>
+
+            <div style="background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+                        padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;
+                        border: 2px solid #ffa8a8;">
+                <h3 style="margin: 0 0 1rem 0; color: #c92a2a; font-size: 1.2rem;">📋 試験形式</h3>
+                <ul style="margin: 0; padding-left: 1.5rem; color: #333; line-height: 1.8;">
+                    <li><strong>問題数</strong>: 60問（全6分野からランダム出題）</li>
+                    <li><strong>制限時間</strong>: 60分間</li>
+                    <li><strong>合格基準</strong>: 36問以上正解（60点以上）</li>
+                </ul>
+            </div>
+
+            <div style="background: #fff8e1; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;
+                        border: 2px solid #ffb300;">
+                <h3 style="margin: 0 0 1rem 0; color: #e65100; font-size: 1.2rem;">⚠️ 注意事項</h3>
+                <ul style="margin: 0; padding-left: 1.5rem; color: #333; line-height: 1.8;">
+                    <li>途中で試験をリセットできません</li>
+                    <li>制限時間終了後、自動的に採点されます</li>
+                    <li>前の問題に戻ることは可能です</li>
+                    <li>全問回答後、「試験を終了」ボタンで採点できます</li>
+                </ul>
+            </div>
+
+            <p style="text-align: center; color: #666; font-size: 1rem; margin-bottom: 2rem;">
+                本番さながらの環境で実力を試しましょう。<br>
+                準備ができたら「開始する」ボタンを押してください。
+            </p>
+
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button id="exam-confirm-start-btn"
+                        style="background: linear-gradient(135deg, #ff4757 0%, #c44569 100%);
+                               color: white; padding: 1rem 3rem; border-radius: 12px;
+                               font-weight: 700; cursor: pointer; border: none;
+                               font-size: 1.2rem; box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+                               transition: all 0.3s ease;">
+                    🎯 開始する
+                </button>
+                <button id="exam-confirm-cancel-btn"
+                        style="background: #e9ecef; color: #495057; padding: 1rem 3rem;
+                               border-radius: 12px; font-weight: 700; cursor: pointer;
+                               border: 2px solid #ced4da; font-size: 1.2rem;
+                               transition: all 0.3s ease;">
+                    キャンセル
+                </button>
+            </div>
         </div>
     </div>
 
