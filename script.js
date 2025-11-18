@@ -42,8 +42,25 @@ class QuizApp {
             statsBtn.addEventListener('click', () => this.showStatsPage());
         }
 
-        // お気に入り数を表示
+        // 苦手問題カウンターのクリックイベント
+        const weakCounter = document.getElementById('weak-counter');
+        if (weakCounter) {
+            weakCounter.addEventListener('click', () => this.loadWeakQuestionsOnly());
+        }
+
+        // 未解答問題カウンターのクリックイベント
+        const unansweredCounter = document.getElementById('unanswered-counter');
+        if (unansweredCounter) {
+            unansweredCounter.addEventListener('click', () => this.loadUnansweredQuestionsOnly());
+        }
+
+        // カウンター数を表示
         this.updateFavoriteCount();
+        this.updateWeakQuestionsCount();
+        this.updateUnansweredQuestionsCount();
+
+        // キーボードショートカットのイベントリスナー
+        document.addEventListener('keydown', (e) => this.handleKeyboardShortcut(e));
     }
 
     // 配列をランダムにシャッフルする関数（Fisher-Yatesアルゴリズム）
@@ -127,6 +144,97 @@ class QuizApp {
 
         // カテゴリータイトルを更新
         document.getElementById('current-category').textContent = '★ お気に入り問題（ランダム出題）';
+
+        // 統計情報を更新
+        document.getElementById('total-questions').textContent = this.currentQuestions.length;
+        document.getElementById('correct-count').textContent = '0';
+
+        // コントロールボタンを表示
+        document.getElementById('quiz-controls').style.display = 'flex';
+
+        // 最初の問題を表示
+        this.displayQuestion();
+    }
+
+    loadWeakQuestionsOnly() {
+        // 全カテゴリーから苦手問題（正解率50%未満）を抽出
+        const weakQuestions = [];
+
+        Object.keys(questionsData).forEach(category => {
+            questionsData[category].questions.forEach(question => {
+                const accuracy = this.getQuestionAccuracy(category, question.id);
+                const progress = this.getQuestionProgress(category, question.id);
+
+                // 解答履歴があり、かつ正解率が50%未満の問題を苦手問題とする
+                if (progress.totalAttempts > 0 && accuracy < 50) {
+                    weakQuestions.push({
+                        ...question,
+                        originalCategory: category
+                    });
+                }
+            });
+        });
+
+        // 苦手問題が0件の場合
+        if (weakQuestions.length === 0) {
+            alert('苦手問題がありません。\n正解率50%未満の問題が「苦手問題」として表示されます。\nもっと問題を解いて、苦手分野を見つけましょう！');
+            return;
+        }
+
+        // 苦手問題をランダムにシャッフル
+        this.currentQuestions = this.shuffleArray(weakQuestions);
+        this.currentCategory = 'weak'; // 特別なカテゴリー
+        this.currentQuestionIndex = 0;
+        this.correctCount = 0;
+        this.userAnswers = new Array(this.currentQuestions.length).fill(null);
+
+        // カテゴリータイトルを更新
+        document.getElementById('current-category').textContent = '🔴 苦手問題（正解率50%未満・ランダム出題）';
+
+        // 統計情報を更新
+        document.getElementById('total-questions').textContent = this.currentQuestions.length;
+        document.getElementById('correct-count').textContent = '0';
+
+        // コントロールボタンを表示
+        document.getElementById('quiz-controls').style.display = 'flex';
+
+        // 最初の問題を表示
+        this.displayQuestion();
+    }
+
+    loadUnansweredQuestionsOnly() {
+        // 全カテゴリーから未解答問題（総解答回数が0）を抽出
+        const unansweredQuestions = [];
+
+        Object.keys(questionsData).forEach(category => {
+            questionsData[category].questions.forEach(question => {
+                const progress = this.getQuestionProgress(category, question.id);
+
+                // 一度も解答していない問題を未解答問題とする
+                if (progress.totalAttempts === 0) {
+                    unansweredQuestions.push({
+                        ...question,
+                        originalCategory: category
+                    });
+                }
+            });
+        });
+
+        // 未解答問題が0件の場合
+        if (unansweredQuestions.length === 0) {
+            alert('未解答問題がありません。\nおめでとうございます！全180問を少なくとも1回は解答しました！\n復習モードで苦手問題を克服しましょう。');
+            return;
+        }
+
+        // 未解答問題をランダムにシャッフル
+        this.currentQuestions = this.shuffleArray(unansweredQuestions);
+        this.currentCategory = 'unanswered'; // 特別なカテゴリー
+        this.currentQuestionIndex = 0;
+        this.correctCount = 0;
+        this.userAnswers = new Array(this.currentQuestions.length).fill(null);
+
+        // カテゴリータイトルを更新
+        document.getElementById('current-category').textContent = '📝 未解答問題（ランダム出題）';
 
         // 統計情報を更新
         document.getElementById('total-questions').textContent = this.currentQuestions.length;
@@ -331,6 +439,10 @@ class QuizApp {
         const categoryForProgress = question.originalCategory || this.currentCategory;
         this.recordProgress(categoryForProgress, question.id, isCorrect);
 
+        // カウンターを更新（苦手問題・未解答問題の数が変わる可能性があるため）
+        this.updateWeakQuestionsCount();
+        this.updateUnansweredQuestionsCount();
+
         // 問題を再表示（解説とフィードバックを表示）
         this.displayQuestion();
 
@@ -510,6 +622,39 @@ class QuizApp {
         const countElement = document.getElementById('favorite-count');
         if (countElement) {
             countElement.textContent = this.favorites.length;
+        }
+    }
+
+    updateWeakQuestionsCount() {
+        const countElement = document.getElementById('weak-count');
+        if (countElement) {
+            let weakCount = 0;
+            Object.keys(questionsData).forEach(category => {
+                questionsData[category].questions.forEach(question => {
+                    const accuracy = this.getQuestionAccuracy(category, question.id);
+                    const progress = this.getQuestionProgress(category, question.id);
+                    if (progress.totalAttempts > 0 && accuracy < 50) {
+                        weakCount++;
+                    }
+                });
+            });
+            countElement.textContent = weakCount;
+        }
+    }
+
+    updateUnansweredQuestionsCount() {
+        const countElement = document.getElementById('unanswered-count');
+        if (countElement) {
+            let unansweredCount = 0;
+            Object.keys(questionsData).forEach(category => {
+                questionsData[category].questions.forEach(question => {
+                    const progress = this.getQuestionProgress(category, question.id);
+                    if (progress.totalAttempts === 0) {
+                        unansweredCount++;
+                    }
+                });
+            });
+            countElement.textContent = unansweredCount;
         }
     }
 
@@ -813,6 +958,133 @@ class QuizApp {
         document.getElementById('stats-section').style.display = 'none';
         document.querySelector('.category-section').style.display = 'block';
         document.getElementById('quiz-section').style.display = 'block';
+    }
+
+    // ========== キーボードショートカット機能 ==========
+
+    /**
+     * キーボードショートカットを処理
+     * @param {KeyboardEvent} e - キーボードイベント
+     */
+    handleKeyboardShortcut(e) {
+        // 入力欄にフォーカスがある場合はショートカットを無効化
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+
+        // 問題が表示されていない場合は一部のショートカットのみ有効
+        const hasQuestions = this.currentQuestions.length > 0;
+
+        switch(e.key) {
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+                // 問題が表示されており、未回答の場合のみ有効
+                if (hasQuestions && this.userAnswers[this.currentQuestionIndex] === null) {
+                    const answerIndex = parseInt(e.key) - 1;
+                    const question = this.currentQuestions[this.currentQuestionIndex];
+                    if (answerIndex < question.options.length) {
+                        this.selectAnswer(answerIndex);
+                        e.preventDefault();
+                    }
+                }
+                break;
+
+            case 'ArrowRight':
+                // 次の問題へ（問題が表示されており、回答済みの場合のみ）
+                if (hasQuestions && this.userAnswers[this.currentQuestionIndex] !== null) {
+                    const nextBtn = document.getElementById('next-btn');
+                    if (!nextBtn.disabled) {
+                        this.nextQuestion();
+                        e.preventDefault();
+                    }
+                }
+                break;
+
+            case 'ArrowLeft':
+                // 前の問題へ（問題が表示されている場合）
+                if (hasQuestions && this.currentQuestionIndex > 0) {
+                    this.prevQuestion();
+                    e.preventDefault();
+                }
+                break;
+
+            case 'r':
+            case 'R':
+                // リセット（問題が表示されている場合）
+                if (hasQuestions && this.currentCategory && this.currentCategory !== 'favorites' && this.currentCategory !== 'weak' && this.currentCategory !== 'unanswered') {
+                    if (confirm('問題をリセットして最初から始めますか？')) {
+                        this.resetQuiz();
+                    }
+                    e.preventDefault();
+                }
+                break;
+
+            case 'f':
+            case 'F':
+                // お気に入り追加/削除（問題が表示されている場合）
+                if (hasQuestions) {
+                    const question = this.currentQuestions[this.currentQuestionIndex];
+                    const categoryForFavorite = question.originalCategory || this.currentCategory;
+                    this.toggleFavorite(categoryForFavorite, question.id);
+                    e.preventDefault();
+                }
+                break;
+
+            case 's':
+            case 'S':
+                // 学習統計を表示
+                this.showStatsPage();
+                e.preventDefault();
+                break;
+
+            case 'w':
+            case 'W':
+                // 苦手問題を表示
+                this.loadWeakQuestionsOnly();
+                e.preventDefault();
+                break;
+
+            case 'u':
+            case 'U':
+                // 未解答問題を表示
+                this.loadUnansweredQuestionsOnly();
+                e.preventDefault();
+                break;
+
+            case '?':
+                // ショートカットヘルプを表示
+                this.showShortcutsModal();
+                e.preventDefault();
+                break;
+
+            case 'Escape':
+                // ショートカットモーダルを閉じる
+                this.hideShortcutsModal();
+                e.preventDefault();
+                break;
+        }
+    }
+
+    /**
+     * キーボードショートカットのヘルプモーダルを表示
+     */
+    showShortcutsModal() {
+        const modal = document.getElementById('shortcuts-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    /**
+     * キーボードショートカットのヘルプモーダルを非表示
+     */
+    hideShortcutsModal() {
+        const modal = document.getElementById('shortcuts-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
     }
 }
 

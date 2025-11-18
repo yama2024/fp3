@@ -277,6 +277,28 @@ h3 {
     transform: scale(1.05);
 }
 
+/* 苦手問題カウンターのホバー効果 */
+#weak-counter:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(238, 90, 111, 0.7);
+    background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
+}
+
+#weak-counter:active {
+    transform: scale(1.05);
+}
+
+/* 未解答問題カウンターのホバー効果 */
+#unanswered-counter:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(51, 154, 240, 0.7);
+    background: linear-gradient(135deg, #339af0 0%, #4dabf7 100%);
+}
+
+#unanswered-counter:active {
+    transform: scale(1.05);
+}
+
 .options {
     list-style: none;
 }
