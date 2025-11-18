@@ -680,6 +680,45 @@ footer {
     .tips-grid {
         grid-template-columns: 1fr;
     }
+
+    /* 本試験モード確認モーダルをさらに調整 */
+    #exam-confirm-modal > div {
+        padding: 1rem !important;
+    }
+
+    #exam-confirm-modal h2 {
+        font-size: 1.1rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    #exam-confirm-modal h3 {
+        font-size: 0.95rem !important;
+    }
+
+    #exam-confirm-modal li {
+        font-size: 0.85rem !important;
+    }
+
+    #exam-confirm-modal p {
+        font-size: 0.85rem !important;
+    }
+
+    #exam-confirm-start-btn,
+    #exam-confirm-cancel-btn {
+        padding: 0.7rem 1rem !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* 試験タイマーをさらに調整 */
+    #exam-timer span {
+        font-size: 1rem !important;
+    }
+
+    /* 試験モード開始ボタンをさらに調整 */
+    #exam-mode-btn {
+        padding: 0.8rem 1rem !important;
+        font-size: 1rem !important;
+    }
 }
 
 /* タッチデバイス向けの最適化 */
@@ -1227,6 +1266,60 @@ footer {
         right: 10px;
         font-size: 0.8rem;
         padding: 0.6rem 1rem;
+    }
+
+    /* 本試験モード確認モーダルのスマホ対応 */
+    #exam-confirm-modal > div {
+        padding: 1.5rem !important;
+        max-width: 95% !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+    }
+
+    #exam-confirm-modal h2 {
+        font-size: 1.3rem !important;
+    }
+
+    #exam-confirm-modal h3 {
+        font-size: 1rem !important;
+    }
+
+    #exam-confirm-modal li {
+        font-size: 0.9rem !important;
+        line-height: 1.6 !important;
+    }
+
+    #exam-confirm-modal p {
+        font-size: 0.9rem !important;
+    }
+
+    #exam-confirm-start-btn,
+    #exam-confirm-cancel-btn {
+        padding: 0.8rem 1.5rem !important;
+        font-size: 1rem !important;
+        width: 100% !important;
+    }
+
+    /* 試験タイマーのスマホ対応 */
+    #exam-timer {
+        margin-top: 0.5rem;
+    }
+
+    #exam-timer span {
+        font-size: 1.2rem !important;
+    }
+
+    /* 試験終了ボタンのスマホ対応 */
+    .btn-danger {
+        font-size: 0.9rem !important;
+        padding: 0.7rem 1rem !important;
+    }
+
+    /* 試験モード開始ボタンのスマホ対応 */
+    #exam-mode-btn {
+        padding: 1rem 1.5rem !important;
+        font-size: 1.1rem !important;
+        width: 100% !important;
     }
 }
 
