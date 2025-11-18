@@ -38,7 +38,8 @@ fp3/
     correctCount: 0,                 // 正解数
     userAnswers: [],                 // ユーザーの回答記録
     favorites: [],                   // お気に入り問題ID配列
-    showOnlyFavorites: false         // お気に入りのみ表示フラグ（未実装）
+    showOnlyFavorites: false,        // お気に入りのみ表示フラグ
+    progress: {}                     // 学習進捗管理（問題ごとの正解/不正解履歴）
 }
 ```
 
@@ -78,6 +79,55 @@ fp3/
    - ナビゲーションボタンの状態管理
    - 未回答時は「次の問題」ボタンを無効化
    - 最後の問題では「結果を見る」に変更
+
+8. **loadFavoritesOnly()** (script.js:78-132)
+   - お気に入り問題のみを表示
+   - 全カテゴリーからお気に入りを抽出
+   - ランダム出題
+
+### 学習進捗管理メソッド
+
+9. **loadProgressFromStorage()** (script.js:506-516)
+   - localStorageから学習進捗を読み込み
+   - キー: 'fp3-progress'
+
+10. **saveProgressToStorage()** (script.js:521-527)
+    - localStorageに学習進捗を保存
+    - JSON形式で永続化
+
+11. **recordProgress(category, questionId, isCorrect)** (script.js:535-559)
+    - 問題の解答履歴を記録
+    - 正解/不正解回数を更新
+    - 総解答回数をカウント
+    - 最終解答日時を記録
+
+12. **getQuestionProgress(category, questionId)** (script.js:567-575)
+    - 特定の問題の進捗データを取得
+    - 返り値: {correct, incorrect, totalAttempts, lastAttempt}
+
+13. **getQuestionAccuracy(category, questionId)** (script.js:583-589)
+    - 問題の正解率を計算（0-100%）
+    - 未解答の場合は0%を返す
+
+14. **getCategoryStats(category)** (script.js:596-628)
+    - カテゴリー全体の統計を計算
+    - 解答済み問題数、正解率、総解答回数など
+
+15. **getOverallStats()** (script.js:634-660)
+    - 全体統計を計算
+    - 全カテゴリーの集計データを返す
+
+16. **showStatsPage()** (script.js:704-712)
+    - 学習統計ダッシュボードを表示
+    - クイズセクションを非表示に
+
+17. **updateStatsDisplay()** (script.js:717-807)
+    - 統計データを画面に表示
+    - 全体統計とカテゴリー別統計を動的生成
+
+18. **hideStatsPage()** (script.js:812-816)
+    - 統計ページを非表示
+    - カテゴリー選択画面に戻る
 
 ## 重要な設計決定
 
@@ -126,7 +176,57 @@ selectAnswer(answerIndex) {
 
 **コード位置**: script.js:171-180, 350-395
 
-### 3. UI/UXの強化
+### 3. 学習進捗管理システム
+
+**目的**: 問題ごとの正解/不正解履歴を記録し、学習効率を向上させる
+**ストレージ**: localStorage（キー: 'fp3-progress'）
+**データ形式**:
+```javascript
+{
+  "category-questionId": {
+    correct: 2,          // 正解回数
+    incorrect: 1,        // 不正解回数
+    totalAttempts: 3,    // 総解答回数
+    lastAttempt: "2025-11-18T12:34:56.789Z"  // 最終解答日時（ISO 8601形式）
+  }
+}
+```
+
+**主要機能**:
+
+1. **問題ごとの学習履歴記録**
+   - 回答時に自動的に正解/不正解を記録
+   - 累積データをlocalStorageに永続化
+   - 問題を解く度に統計が更新される
+
+2. **習熟度バッジ表示**
+   - 各問題に習熟度を色分けして表示
+   - 🟢 得意（80%以上）: 緑色
+   - 🟡 普通（50-80%）: 黄色
+   - 🔴 苦手（50%未満）: 赤色
+   - ⚪ 未解答: バッジなし
+   - 正解回数/総解答回数も表示
+
+3. **学習統計ダッシュボード**
+   - 📊ボタンから統計ページにアクセス
+   - 全体統計: 総合正解率、解答済み問題数、総解答回数
+   - カテゴリー別統計: 各カテゴリーの詳細データ
+   - 進捗バー: 視覚的な学習進捗表示
+
+**実装の詳細**:
+
+- **記録タイミング**: selectAnswer()メソッド内で自動記録（script.js:291-293）
+- **統計計算**: getQuestionAccuracy()で正解率を計算
+- **バッジ表示**: displayQuestion()内で動的生成（script.js:187-217）
+- **ダッシュボード**: updateStatsDisplay()で統計カードを生成
+
+**設計の利点**:
+- 問題IDベースでデータ管理（カテゴリー変更に対応）
+- JSONフォーマットで人間可読
+- try-catchでエラーハンドリング
+- 既存機能と独立して動作
+
+### 4. UI/UXの強化
 
 #### お気に入りボタンのデザイン (styles.css:186-244)
 
@@ -215,6 +315,7 @@ const questionsData = {
 3. **回答後のボタン制御**: 未回答時は「次の問題」ボタンを無効化
 4. **正解/不正解のフィードバック**: 視覚的フィードバックを維持
 5. **お気に入り機能**: localStorage連携を維持
+6. **学習進捗管理**: 履歴データの整合性を維持、localStorageの独立管理
 
 ## 開発時の注意事項
 
@@ -240,30 +341,13 @@ const questionsData = {
    - innerHTML更新時に古いリスナーは自動削除される
 
 2. **localStorage使用**
-   - saveFavoritesToStorage(): JSON.stringify()
-   - loadFavoritesFromStorage(): JSON.parse()
+   - お気に入り: saveFavoritesToStorage() / loadFavoritesFromStorage()
+   - 学習進捗: saveProgressToStorage() / loadProgressFromStorage()
+   - JSON.stringify() / JSON.parse()を使用
    - try-catchでエラーハンドリング
+   - キー分離: 'fp3-favorites' と 'fp3-progress'
 
 ## 未実装機能（将来の拡張）
-
-### お気に入りのみ表示
-
-**プロパティ**: `showOnlyFavorites` (script.js:11)
-**実装案**:
-```javascript
-loadFavoritesOnly() {
-    // お気に入りの問題のみをフィルタリング
-    // 全カテゴリーから該当する問題を抽出
-    // 新しいカテゴリー「お気に入り」として表示
-}
-```
-
-### カテゴリー別進捗管理
-
-**実装案**:
-- カテゴリーごとの正解率を記録
-- 進捗をlocalStorageに保存
-- ダッシュボード表示
 
 ### 試験モード
 
@@ -303,6 +387,18 @@ loadFavoritesOnly() {
 5. **お気に入り機能**: 初期実装（コミット 0931023）
 6. **イベント処理修正**: onclick→addEventListenerに変更（コミット 178dabb）
 7. **UI大幅改善**: お気に入りボタンを目立たせる（コミット 0a1e3f1）
+8. **CLAUDE.mdとREADME.mdを作成・更新**（コミット 2e57368）
+9. **スマートフォン向けレスポンシブデザインを大幅に改善**（コミット 57ef873）
+10. **問題数を大幅に拡張（72問→180問）**（コミット 3b90143）
+    - 各カテゴリーを12問から30問に拡張
+    - 合計108問の新規追加
+11. **お気に入り問題の表示機能を追加**（コミット 247cad3）
+    - お気に入りカウンターをクリックでお気に入り問題のみを表示
+    - 全カテゴリーから抽出・ランダム出題
+12. **学習進捗管理機能を実装（正解/不正解履歴）**（コミット 3a1d7b4）
+    - 問題ごとの学習履歴を記録
+    - 習熟度バッジの表示
+    - 学習統計ダッシュボードの実装
 
 ## セキュリティ考慮事項
 
@@ -348,6 +444,24 @@ loadFavoritesOnly() {
 
 ---
 
-**最終更新**: 2025年11月17日
-**バージョン**: 1.0
+**最終更新**: 2025年11月18日
+**バージョン**: 1.1
 **メンテナー**: Claude AI
+
+---
+
+## バージョン履歴
+
+### v1.1 (2025-11-18)
+- 学習進捗管理機能を実装
+- 問題ごとの正解/不正解履歴記録
+- 習熟度バッジ表示
+- 学習統計ダッシュボード追加
+- お気に入り問題表示機能追加
+
+### v1.0 (2025-11-17)
+- 初回リリース
+- 基本的なクイズ機能
+- 180問の問題データベース
+- お気に入り機能
+- レスポンシブデザイン
