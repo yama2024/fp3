@@ -266,6 +266,17 @@ h3 {
     transform: scale(1.05);
 }
 
+/* 学習統計ボタンのホバー効果 */
+#stats-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+#stats-btn:active {
+    transform: scale(1.05);
+}
+
 .options {
     list-style: none;
 }

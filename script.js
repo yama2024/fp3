@@ -9,7 +9,9 @@ class QuizApp {
         this.userAnswers = [];
         this.favorites = [];
         this.showOnlyFavorites = false;
+        this.progress = {}; // 学習進捗管理（問題ごとの正解/不正解履歴）
         this.loadFavoritesFromStorage();
+        this.loadProgressFromStorage();
         this.init();
     }
 
@@ -32,6 +34,12 @@ class QuizApp {
         const favoriteCounter = document.getElementById('favorite-counter');
         if (favoriteCounter) {
             favoriteCounter.addEventListener('click', () => this.loadFavoritesOnly());
+        }
+
+        // 学習統計ボタンのクリックイベント
+        const statsBtn = document.getElementById('stats-btn');
+        if (statsBtn) {
+            statsBtn.addEventListener('click', () => this.showStatsPage());
         }
 
         // お気に入り数を表示
@@ -182,6 +190,38 @@ class QuizApp {
         const favoriteIcon = isFav ? '★' : '☆';
         const favoriteClass = isFav ? 'favorite-active' : '';
 
+        // 学習進捗バッジ
+        const progress = this.getQuestionProgress(categoryForFavorite, question.id);
+        const accuracy = this.getQuestionAccuracy(categoryForFavorite, question.id);
+        let progressBadge = '';
+
+        if (progress.totalAttempts > 0) {
+            let badgeColor = '#6c757d'; // グレー（デフォルト）
+            let badgeText = '未解答';
+
+            if (accuracy >= 80) {
+                badgeColor = '#28a745'; // 緑（得意）
+                badgeText = '得意';
+            } else if (accuracy >= 50) {
+                badgeColor = '#ffc107'; // 黄（普通）
+                badgeText = '普通';
+            } else {
+                badgeColor = '#dc3545'; // 赤（苦手）
+                badgeText = '苦手';
+            }
+
+            progressBadge = `
+                <div style="background: ${badgeColor}; color: white; padding: 0.3rem 0.6rem;
+                            border-radius: 12px; font-size: 0.7rem; font-weight: 600;
+                            text-align: center; margin-top: 0.5rem; white-space: nowrap;">
+                    ${badgeText} ${accuracy}%
+                </div>
+                <div style="font-size: 0.65rem; color: #666; margin-top: 0.2rem; text-align: center;">
+                    正解${progress.correct}/${progress.totalAttempts}回
+                </div>
+            `;
+        }
+
         // 問題HTMLを生成
         let html = `
             <div class="question">
@@ -201,6 +241,7 @@ class QuizApp {
                         <span style="font-size: 0.75rem; color: #ff8c00; font-weight: 600; white-space: nowrap;">
                             ${isFav ? 'お気に入り' : 'クリックして保存'}
                         </span>
+                        ${progressBadge}
                     </div>
                 </div>
                 <ul class="options">
@@ -279,10 +320,16 @@ class QuizApp {
 
         // 正解かどうかチェック
         const question = this.currentQuestions[this.currentQuestionIndex];
-        if (answerIndex === question.correctAnswer) {
+        const isCorrect = answerIndex === question.correctAnswer;
+
+        if (isCorrect) {
             this.correctCount++;
             document.getElementById('correct-count').textContent = this.correctCount;
         }
+
+        // 学習進捗を記録（お気に入りカテゴリーの場合はoriginalCategoryを使用）
+        const categoryForProgress = question.originalCategory || this.currentCategory;
+        this.recordProgress(categoryForProgress, question.id, isCorrect);
 
         // 問題を再表示（解説とフィードバックを表示）
         this.displayQuestion();
@@ -488,6 +535,284 @@ class QuizApp {
 
     getFavoriteCount() {
         return this.favorites.length;
+    }
+
+    // ========== 学習進捗管理機能 ==========
+
+    /**
+     * 学習進捗をlocalStorageから読み込む
+     */
+    loadProgressFromStorage() {
+        try {
+            const saved = localStorage.getItem('fp3-progress');
+            if (saved) {
+                this.progress = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('学習進捗の読み込みに失敗しました:', e);
+            this.progress = {};
+        }
+    }
+
+    /**
+     * 学習進捗をlocalStorageに保存
+     */
+    saveProgressToStorage() {
+        try {
+            localStorage.setItem('fp3-progress', JSON.stringify(this.progress));
+        } catch (e) {
+            console.error('学習進捗の保存に失敗しました:', e);
+        }
+    }
+
+    /**
+     * 問題の進捗を記録
+     * @param {string} category - カテゴリー名
+     * @param {number} questionId - 問題ID
+     * @param {boolean} isCorrect - 正解かどうか
+     */
+    recordProgress(category, questionId, isCorrect) {
+        const key = this.getQuestionId(category, questionId);
+
+        // 既存の進捗データを取得、なければ初期化
+        if (!this.progress[key]) {
+            this.progress[key] = {
+                correct: 0,
+                incorrect: 0,
+                totalAttempts: 0,
+                lastAttempt: null
+            };
+        }
+
+        // 進捗を更新
+        if (isCorrect) {
+            this.progress[key].correct++;
+        } else {
+            this.progress[key].incorrect++;
+        }
+        this.progress[key].totalAttempts++;
+        this.progress[key].lastAttempt = new Date().toISOString();
+
+        // localStorageに保存
+        this.saveProgressToStorage();
+    }
+
+    /**
+     * 特定の問題の進捗を取得
+     * @param {string} category - カテゴリー名
+     * @param {number} questionId - 問題ID
+     * @returns {Object} 進捗データ
+     */
+    getQuestionProgress(category, questionId) {
+        const key = this.getQuestionId(category, questionId);
+        return this.progress[key] || {
+            correct: 0,
+            incorrect: 0,
+            totalAttempts: 0,
+            lastAttempt: null
+        };
+    }
+
+    /**
+     * 問題の正解率を計算
+     * @param {string} category - カテゴリー名
+     * @param {number} questionId - 問題ID
+     * @returns {number} 正解率（0-100）
+     */
+    getQuestionAccuracy(category, questionId) {
+        const prog = this.getQuestionProgress(category, questionId);
+        if (prog.totalAttempts === 0) {
+            return 0;
+        }
+        return Math.round((prog.correct / prog.totalAttempts) * 100);
+    }
+
+    /**
+     * カテゴリー全体の統計を取得
+     * @param {string} category - カテゴリー名
+     * @returns {Object} カテゴリー統計
+     */
+    getCategoryStats(category) {
+        const stats = {
+            totalQuestions: 0,
+            attemptedQuestions: 0,
+            totalCorrect: 0,
+            totalIncorrect: 0,
+            totalAttempts: 0,
+            averageAccuracy: 0
+        };
+
+        if (!questionsData[category]) {
+            return stats;
+        }
+
+        const questions = questionsData[category].questions;
+        stats.totalQuestions = questions.length;
+
+        questions.forEach(question => {
+            const prog = this.getQuestionProgress(category, question.id);
+            if (prog.totalAttempts > 0) {
+                stats.attemptedQuestions++;
+                stats.totalCorrect += prog.correct;
+                stats.totalIncorrect += prog.incorrect;
+                stats.totalAttempts += prog.totalAttempts;
+            }
+        });
+
+        if (stats.totalAttempts > 0) {
+            stats.averageAccuracy = Math.round((stats.totalCorrect / stats.totalAttempts) * 100);
+        }
+
+        return stats;
+    }
+
+    /**
+     * 全体の統計を取得
+     * @returns {Object} 全体統計
+     */
+    getOverallStats() {
+        const stats = {
+            totalQuestions: 0,
+            attemptedQuestions: 0,
+            totalCorrect: 0,
+            totalIncorrect: 0,
+            totalAttempts: 0,
+            averageAccuracy: 0,
+            categoryStats: {}
+        };
+
+        Object.keys(questionsData).forEach(category => {
+            const catStats = this.getCategoryStats(category);
+            stats.totalQuestions += catStats.totalQuestions;
+            stats.attemptedQuestions += catStats.attemptedQuestions;
+            stats.totalCorrect += catStats.totalCorrect;
+            stats.totalIncorrect += catStats.totalIncorrect;
+            stats.totalAttempts += catStats.totalAttempts;
+            stats.categoryStats[category] = catStats;
+        });
+
+        if (stats.totalAttempts > 0) {
+            stats.averageAccuracy = Math.round((stats.totalCorrect / stats.totalAttempts) * 100);
+        }
+
+        return stats;
+    }
+
+    /**
+     * 学習統計ページを表示
+     */
+    showStatsPage() {
+        // クイズセクションを非表示、統計セクションを表示
+        document.getElementById('quiz-section').style.display = 'none';
+        document.querySelector('.category-section').style.display = 'none';
+        document.getElementById('stats-section').style.display = 'block';
+
+        // 統計を更新
+        this.updateStatsDisplay();
+    }
+
+    /**
+     * 学習統計の表示を更新
+     */
+    updateStatsDisplay() {
+        const overallStats = this.getOverallStats();
+
+        // 全体統計の更新
+        document.getElementById('overall-accuracy').textContent = `${overallStats.averageAccuracy}%`;
+        document.getElementById('overall-attempted').textContent = `${overallStats.attemptedQuestions}/${overallStats.totalQuestions}`;
+        document.getElementById('overall-total-attempts').textContent = overallStats.totalAttempts;
+
+        // カテゴリー別統計の更新
+        const container = document.getElementById('category-stats-container');
+        const categoryNames = {
+            'life-planning': 'ライフプランニングと資金計画',
+            'risk-management': 'リスク管理',
+            'financial-assets': '金融資産運用',
+            'tax': 'タックスプランニング',
+            'real-estate': '不動産',
+            'inheritance': '相続・事業承継'
+        };
+
+        let html = '';
+        Object.keys(questionsData).forEach(category => {
+            const stats = overallStats.categoryStats[category];
+            const progressPercent = Math.round((stats.attemptedQuestions / stats.totalQuestions) * 100);
+
+            // 正解率で色分け
+            let accuracyColor = '#6c757d'; // グレー
+            if (stats.averageAccuracy >= 80) {
+                accuracyColor = '#28a745'; // 緑
+            } else if (stats.averageAccuracy >= 60) {
+                accuracyColor = '#ffc107'; // 黄
+            } else if (stats.averageAccuracy > 0) {
+                accuracyColor = '#dc3545'; // 赤
+            }
+
+            html += `
+                <div style="background: white; border: 2px solid #e9ecef; border-radius: 12px;
+                            padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 1rem 0; color: #2c3e50; font-size: 1.2rem;">
+                        ${categoryNames[category]}
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: ${accuracyColor};">
+                                ${stats.averageAccuracy}%
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6c757d;">正解率</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #17a2b8;">
+                                ${stats.attemptedQuestions}/${stats.totalQuestions}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6c757d;">解答済み</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #6f42c1;">
+                                ${stats.totalAttempts}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6c757d;">解答回数</div>
+                        </div>
+                    </div>
+                    <!-- 進捗バー -->
+                    <div style="background: #e9ecef; border-radius: 10px; height: 20px; overflow: hidden;">
+                        <div style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+                                    width: ${progressPercent}%; height: 100%; transition: width 0.3s ease;
+                                    display: flex; align-items: center; justify-content: center;
+                                    color: white; font-size: 0.75rem; font-weight: 600;">
+                            ${progressPercent > 10 ? progressPercent + '%' : ''}
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 0.5rem; font-size: 0.85rem; color: #6c757d;">
+                        学習進捗: ${progressPercent}%
+                    </div>
+                </div>
+            `;
+        });
+
+        // 戻るボタンを追加
+        html += `
+            <button onclick="quizApp.hideStatsPage()"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                           color: white; padding: 1rem 2rem; border-radius: 12px;
+                           font-weight: 700; font-size: 1.1rem; cursor: pointer;
+                           border: none; width: 100%; margin-top: 1rem;
+                           box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                           transition: all 0.3s ease;">
+                ← カテゴリー選択に戻る
+            </button>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    /**
+     * 学習統計ページを非表示にしてカテゴリー選択に戻る
+     */
+    hideStatsPage() {
+        document.getElementById('stats-section').style.display = 'none';
+        document.querySelector('.category-section').style.display = 'block';
+        document.getElementById('quiz-section').style.display = 'block';
     }
 }
 

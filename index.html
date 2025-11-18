@@ -45,19 +45,34 @@
         <section class="category-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                 <h2 style="margin: 0;">分野別過去問題</h2>
-                <div id="favorite-counter" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div id="favorite-counter" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+                                                        padding: 1rem 2rem;
+                                                        border-radius: 12px;
+                                                        font-weight: 700;
+                                                        color: #333;
+                                                        font-size: 1.2rem;
+                                                        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+                                                        border: 3px solid #ff8c00;
+                                                        animation: counterPulse 2s ease-in-out infinite;
+                                                        cursor: pointer;
+                                                        transition: all 0.3s ease;
+                                                        user-select: none;">
+                        ★ お気に入り: <span id="favorite-count" style="color: #d2691e; font-size: 1.5rem;">0</span>問
+                    </div>
+                    <button id="stats-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                    color: white;
                                                     padding: 1rem 2rem;
                                                     border-radius: 12px;
                                                     font-weight: 700;
-                                                    color: #333;
                                                     font-size: 1.2rem;
-                                                    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-                                                    border: 3px solid #ff8c00;
-                                                    animation: counterPulse 2s ease-in-out infinite;
+                                                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                                                    border: 3px solid #5a67d8;
                                                     cursor: pointer;
                                                     transition: all 0.3s ease;
                                                     user-select: none;">
-                    ★ お気に入り: <span id="favorite-count" style="color: #d2691e; font-size: 1.5rem;">0</span>問
+                        📊 学習統計
+                    </button>
                 </div>
             </div>
             <div class="categories">
@@ -68,6 +83,35 @@
                 <button class="category-btn" data-category="real-estate">不動産</button>
                 <button class="category-btn" data-category="inheritance">相続・事業承継</button>
             </div>
+        </section>
+
+        <!-- 学習統計ダッシュボード -->
+        <section class="stats-section" id="stats-section" style="display: none;">
+            <h2 style="margin-bottom: 1.5rem; text-align: center; color: #2c3e50;">📊 学習統計ダッシュボード</h2>
+
+            <!-- 全体統計 -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white; padding: 1.5rem; border-radius: 12px;
+                        margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.3rem;">全体の進捗</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700;" id="overall-accuracy">0%</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">総合正解率</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700;" id="overall-attempted">0/180</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">解答済み問題</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700;" id="overall-total-attempts">0</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">総解答回数</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- カテゴリー別統計 -->
+            <div id="category-stats-container"></div>
         </section>
 
         <section class="quiz-section" id="quiz-section">
